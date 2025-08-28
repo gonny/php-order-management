@@ -1,6 +1,6 @@
 {
   "name": "Laravel + Inertia + Vue - actual",
-  "image": "mcr.microsoft.com/devcontainers/php:1-8.3",
+  "image": "mcr.microsoft.com/devcontainers/php:1-8.4",
   
   "customizations": {
     "vscode": {
@@ -17,7 +17,8 @@
         "vue.volar",
         "ms-vscode.vscode-typescript-next",
         "nhedger.inertia",
-        "damms005.devdb"
+        "damms005.devdb",
+        "svelte.svelte-vscode"
       ],
       "settings": {
         "composer.executablePath": "/usr/local/bin/composer",
