@@ -1,0 +1,57 @@
+{
+  "name": "Laravel + Inertia + Vue - actual",
+  "image": "mcr.microsoft.com/devcontainers/php:1-8.3",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "-vscode.php-language-features",
+        "ikappas.composer",
+        "github.copilot-chat",
+        "github.copilot",
+        "streetsidesoftware.code-spell-checker",
+        "amiralizadeh9480.laravel-extra-intellisense",
+        "esbenp.prettier-vscode",
+        "laravel.vscode-laravel",
+        "bradlc.vscode-tailwindcss",
+        "vue.volar",
+        "ms-vscode.vscode-typescript-next",
+        "nhedger.inertia",
+        "damms005.devdb"
+      ],
+      "settings": {
+        "composer.executablePath": "/usr/local/bin/composer",
+        "LaravelExtraIntellisense.basePath": "/workspaces/etiketou-invoice",
+        "LaravelExtraIntellisense.basePathForCode": "/workspaces/etiketou-invoice",
+        "php.executablePath": "/usr/local/bin/php",
+        "vue.inlayHints.missingProps": true,
+        "vue.complete.casing.props": "kebab",
+        "typescript.preferences.importModuleSpecifier": "non-relative",
+        "inertia.pages": "/workspaces/etiketou-invoice/resources/js/Pages/**/*.vue"
+      }
+    }
+  },
+
+  "forwardPorts": [8080, 5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Laravel App",
+      "onAutoForward": "notify"
+    }
+  },
+  
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {"version": "22"},
+    "ghcr.io/devcontainers-extra/features/composer:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "$(pwd)/setup.sh",
+  "remoteUser": "vscode"
+}
