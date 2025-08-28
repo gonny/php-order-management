@@ -1,0 +1,391 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\Address;
+use App\Models\Client;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\ShippingLabel;
+use App\Services\OrderManagement\AuditLogger;
+use App\Services\OrderManagement\Exceptions\InvalidOrderTransitionException;
+use App\Services\OrderManagement\OrderStateMachine;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+
+class OrderController extends Controller
+{
+    public function __construct(
+        private OrderStateMachine $stateMachine,
+        private AuditLogger $auditLogger
+    ) {}
+
+    /**
+     * Display a listing of orders.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['sometimes', Rule::in([
+                Order::STATUS_NEW,
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_PAID,
+                Order::STATUS_FULFILLED,
+                Order::STATUS_COMPLETED,
+                Order::STATUS_CANCELLED,
+                Order::STATUS_ON_HOLD,
+                Order::STATUS_FAILED,
+            ])],
+            'client_id' => ['sometimes', 'string', 'exists:clients,id'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $query = Order::with(['client', 'items', 'shippingAddress', 'billingAddress']);
+
+        // Apply filters
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('client_id')) {
+            $query->where('client_id', $request->client_id);
+        }
+
+        $orders = $query->paginate($request->get('per_page', 15));
+
+        return response()->json([
+            'data' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Store a newly created order.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'client' => ['required', 'array'],
+            'client.external_id' => ['sometimes', 'string'],
+            'client.email' => ['required', 'email'],
+            'client.first_name' => ['required', 'string', 'max:255'],
+            'client.last_name' => ['required', 'string', 'max:255'],
+            'client.phone' => ['sometimes', 'string'],
+            'client.company' => ['sometimes', 'string'],
+            
+            'shipping_address' => ['required', 'array'],
+            'shipping_address.name' => ['required', 'string'],
+            'shipping_address.street1' => ['required', 'string'],
+            'shipping_address.street2' => ['sometimes', 'string'],
+            'shipping_address.city' => ['required', 'string'],
+            'shipping_address.postal_code' => ['required', 'string'],
+            'shipping_address.country_code' => ['required', 'string', 'size:2'],
+            'shipping_address.state' => ['sometimes', 'string'],
+            
+            'billing_address' => ['sometimes', 'array'],
+            'billing_address.name' => ['required_with:billing_address', 'string'],
+            'billing_address.street1' => ['required_with:billing_address', 'string'],
+            'billing_address.city' => ['required_with:billing_address', 'string'],
+            'billing_address.postal_code' => ['required_with:billing_address', 'string'],
+            'billing_address.country_code' => ['required_with:billing_address', 'string', 'size:2'],
+            
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.sku' => ['required', 'string'],
+            'items.*.name' => ['required', 'string'],
+            'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.tax_rate' => ['sometimes', 'numeric', 'min:0', 'max:1'],
+            
+            'carrier' => ['sometimes', Rule::in([Order::CARRIER_BALIKOVNA, Order::CARRIER_DPD])],
+            'currency' => ['sometimes', 'string', 'size:3'],
+            'meta' => ['sometimes', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $order = DB::transaction(function () use ($request) {
+                // Create or find client
+                $clientData = $request->client;
+                $client = Client::where('email', $clientData['email'])->first();
+                
+                if (!$client) {
+                    $client = Client::create($clientData);
+                }
+
+                // Create addresses
+                $shippingAddress = Address::create(array_merge(
+                    $request->shipping_address,
+                    ['type' => 'shipping', 'client_id' => $client->id]
+                ));
+
+                $billingAddress = null;
+                if ($request->has('billing_address')) {
+                    $billingAddress = Address::create(array_merge(
+                        $request->billing_address,
+                        ['type' => 'billing', 'client_id' => $client->id]
+                    ));
+                }
+
+                // Calculate total
+                $totalAmount = collect($request->items)->sum(function ($item) {
+                    return $item['qty'] * $item['price'] * (1 + ($item['tax_rate'] ?? 0));
+                });
+
+                // Create order
+                $order = Order::create([
+                    'number' => 'ORD-' . strtoupper(uniqid()),
+                    'client_id' => $client->id,
+                    'status' => Order::STATUS_NEW,
+                    'total_amount' => $totalAmount,
+                    'currency' => $request->get('currency', 'USD'),
+                    'shipping_address_id' => $shippingAddress->id,
+                    'billing_address_id' => $billingAddress?->id,
+                    'carrier' => $request->get('carrier'),
+                    'meta' => $request->get('meta'),
+                ]);
+
+                // Create order items
+                foreach ($request->items as $itemData) {
+                    OrderItem::create(array_merge($itemData, ['order_id' => $order->id]));
+                }
+
+                // Log creation
+                $this->auditLogger->logOrderCreation($order, 'api', $this->getApiClientId($request));
+
+                return $order->load(['client', 'items', 'shippingAddress', 'billingAddress']);
+            });
+
+            return response()->json([
+                'data' => $order,
+                'message' => 'Order created successfully',
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Order creation failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Display the specified order.
+     */
+    public function show(Request $request, string $identifier): JsonResponse
+    {
+        // Support lookup by ID, number, or pmi_id
+        $order = Order::with(['client', 'items', 'shippingAddress', 'billingAddress', 'shippingLabels'])
+            ->where(function ($query) use ($identifier) {
+                $query->where('id', $identifier)
+                    ->orWhere('number', $identifier)
+                    ->orWhere('pmi_id', $identifier);
+            })
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'error' => 'Order not found',
+            ], 404);
+        }
+
+        $data = $order->toArray();
+        $data['available_transitions'] = $this->stateMachine->getAvailableTransitions($order);
+        $data['status_display'] = $this->stateMachine->getStatusDisplayName($order->status);
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Update the specified order.
+     */
+    public function update(Request $request, Order $order): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'carrier' => ['sometimes', Rule::in([Order::CARRIER_BALIKOVNA, Order::CARRIER_DPD])],
+            'meta' => ['sometimes', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $originalData = $order->toArray();
+        
+        $order->update($request->only(['carrier', 'meta']));
+
+        $this->auditLogger->logOrderUpdate($order, $originalData, 'api', $this->getApiClientId($request));
+
+        return response()->json([
+            'data' => $order->fresh(['client', 'items', 'shippingAddress', 'billingAddress']),
+            'message' => 'Order updated successfully',
+        ]);
+    }
+
+    /**
+     * Remove the specified order.
+     */
+    public function destroy(Request $request, Order $order): JsonResponse
+    {
+        // Only allow deletion of new orders
+        if ($order->status !== Order::STATUS_NEW) {
+            return response()->json([
+                'error' => 'Cannot delete order',
+                'message' => 'Only orders with status "new" can be deleted',
+            ], 422);
+        }
+
+        $this->auditLogger->logOrderDeletion($order, 'api', $this->getApiClientId($request));
+        
+        $order->delete();
+
+        return response()->json([
+            'message' => 'Order deleted successfully',
+        ]);
+    }
+
+    /**
+     * Transition order status.
+     */
+    public function transition(Request $request, Order $order): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', Rule::in([
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_PAID,
+                Order::STATUS_FULFILLED,
+                Order::STATUS_COMPLETED,
+                Order::STATUS_CANCELLED,
+                Order::STATUS_ON_HOLD,
+                Order::STATUS_FAILED,
+            ])],
+            'reason' => ['sometimes', 'string'],
+            'metadata' => ['sometimes', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $transitionedOrder = $this->stateMachine->transition(
+                $order,
+                $request->status,
+                $request->get('reason'),
+                $request->get('metadata'),
+                'api',
+                $this->getApiClientId($request)
+            );
+
+            return response()->json([
+                'data' => $transitionedOrder->load(['client', 'items', 'shippingAddress', 'billingAddress']),
+                'message' => "Order status changed to {$request->status}",
+            ]);
+
+        } catch (InvalidOrderTransitionException $e) {
+            return response()->json([
+                'error' => 'Invalid transition',
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Generate shipping label.
+     */
+    public function generateLabel(Request $request, Order $order): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'carrier' => ['sometimes', Rule::in([Order::CARRIER_BALIKOVNA, Order::CARRIER_DPD])],
+            'options' => ['sometimes', 'array'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if (!$order->isPaid()) {
+            return response()->json([
+                'error' => 'Cannot generate label',
+                'message' => 'Order must be paid before generating shipping label',
+            ], 422);
+        }
+
+        // For now, create a mock label (will implement actual carrier integration later)
+        $label = ShippingLabel::create([
+            'order_id' => $order->id,
+            'carrier' => $request->get('carrier', $order->carrier),
+            'carrier_shipment_id' => 'MOCK_' . uniqid(),
+            'tracking_number' => 'TRK_' . strtoupper(uniqid()),
+            'file_path' => 'labels/' . uniqid() . '.pdf',
+            'format' => 'pdf',
+            'status' => 'generated',
+            'raw_response' => ['mock' => 'response'],
+        ]);
+
+        return response()->json([
+            'data' => $label,
+            'message' => 'Shipping label generated successfully',
+        ], 201);
+    }
+
+    /**
+     * Void shipping label.
+     */
+    public function voidLabel(Request $request, ShippingLabel $label): JsonResponse
+    {
+        if ($label->status !== 'generated') {
+            return response()->json([
+                'error' => 'Cannot void label',
+                'message' => 'Only generated labels can be voided',
+            ], 422);
+        }
+
+        $label->update(['status' => 'voided']);
+
+        return response()->json([
+            'data' => $label,
+            'message' => 'Shipping label voided successfully',
+        ]);
+    }
+
+    /**
+     * Get API client ID from request.
+     */
+    private function getApiClientId(Request $request): string
+    {
+        $apiClient = $request->attributes->get('api_client');
+        return $apiClient ? $apiClient->key_id : 'unknown';
+    }
+}
