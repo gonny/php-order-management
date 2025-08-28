@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('number')->unique();
-            $table->string('pmi_id')->unique()->index();
+            $table->string('pmi_id')->nullable()->unique()->index();
             $table->foreignUlid('client_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['new', 'confirmed', 'paid', 'fulfilled', 'completed', 'cancelled', 'on_hold', 'failed'])->index();
             $table->decimal('total_amount', 10, 2);
