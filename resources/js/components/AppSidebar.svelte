@@ -5,7 +5,7 @@
     import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
     import { type NavItem } from '@/types';
     import { Link } from '@inertiajs/svelte';
-    import { BookOpen, Folder, LayoutGrid } from 'lucide-svelte';
+    import { BookOpen, Folder, LayoutGrid, ShoppingCart, Users, Webhook, Settings } from 'lucide-svelte';
     import AppLogo from './AppLogo.svelte';
 
     const mainNavItems: NavItem[] = [
@@ -13,6 +13,26 @@
             title: 'Dashboard',
             href: '/dashboard',
             icon: LayoutGrid,
+        },
+        {
+            title: 'Orders',
+            href: '/orders',
+            icon: ShoppingCart,
+        },
+        {
+            title: 'Clients',
+            href: '/clients',
+            icon: Users,
+        },
+        {
+            title: 'Webhooks',
+            href: '/webhooks',
+            icon: Webhook,
+        },
+        {
+            title: 'Settings',
+            href: '/settings',
+            icon: Settings,
         },
     ];
 
