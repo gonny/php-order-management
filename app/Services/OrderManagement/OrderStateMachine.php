@@ -120,6 +120,15 @@ class OrderStateMachine
                 $actorId
             );
 
+            // Dispatch background job to handle post-transition actions
+            \App\Jobs\ProcessOrderStateChange::dispatch(
+                $order,
+                $oldStatus,
+                $toStatus,
+                $reason ?? 'Status transition',
+                $metadata ?? []
+            );
+
             return $order;
         });
     }
