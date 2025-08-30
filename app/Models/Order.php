@@ -24,6 +24,7 @@ class Order extends Model
         'billing_address_id',
         'carrier',
         'meta',
+        'pdf_path',
     ];
 
     protected $casts = [

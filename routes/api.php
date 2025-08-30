@@ -26,6 +26,7 @@ Route::prefix("api/v1")->middleware([
     Route::apiResource("orders", OrderController::class);
     Route::post("orders/{order}/transition", [OrderController::class, "transition"]);
     Route::post("orders/{order}/label", [OrderController::class, "generateLabel"]);
+    Route::post("orders/{order}/pdf", [OrderController::class, "generatePdf"])->middleware(RateLimitApiMiddleware::class . ":10");
     
     // Client management endpoints
     Route::apiResource("clients", ClientController::class)->only(["store", "show"]);
