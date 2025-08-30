@@ -8,7 +8,7 @@ use App\Http\Middleware\RateLimitApiMiddleware;
 use Illuminate\Support\Facades\Route;
 
 // API v1 routes with HMAC authentication and rate limiting
-Route::prefix("api/v1")->middleware([
+Route::prefix("v1")->middleware([
     HmacAuthenticationMiddleware::class,
     RateLimitApiMiddleware::class . ":60",
 ])->group(function () {
@@ -39,7 +39,7 @@ Route::prefix("api/v1")->middleware([
 });
 
 // Webhook endpoints without authentication (they have their own signature validation)
-Route::prefix("api/v1/webhooks")->group(function () {
+Route::prefix("v1/webhooks")->group(function () {
     Route::post("balikovna", [WebhookController::class, "balikovna"]);
     Route::post("dpd", [WebhookController::class, "dpd"]);
     Route::post("payment", [WebhookController::class, "payment"]);

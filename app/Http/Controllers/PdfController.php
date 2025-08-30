@@ -15,9 +15,9 @@ class PdfController extends Controller
      */
     public function downloadOrderPdf(Request $request, Order $order): BinaryFileResponse|Response
     {
-        // Check if user has permission to download PDFs
-        if (!$request->user() || !in_array($request->user()->role ?? '', ['admin', 'user'])) {
-            abort(403, 'Unauthorized access to PDF download');
+        // Check if user is authenticated
+        if (!$request->user()) {
+            abort(403, 'Authentication required to download PDF');
         }
 
         // Check if PDF exists for this order
@@ -47,9 +47,9 @@ class PdfController extends Controller
      */
     public function showGenerationForm(Request $request, Order $order)
     {
-        // Check if user has permission
-        if (!$request->user() || !in_array($request->user()->role ?? '', ['admin', 'user'])) {
-            abort(403, 'Unauthorized access');
+        // Check if user is authenticated
+        if (!$request->user()) {
+            abort(403, 'Authentication required');
         }
 
         return inertia('Orders/PdfGeneration', [
