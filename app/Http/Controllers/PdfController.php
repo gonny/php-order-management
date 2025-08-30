@@ -57,4 +57,36 @@ class PdfController extends Controller
             'pdfExists' => !empty($order->pdf_path),
         ]);
     }
+
+    /**
+     * Download DPD shipping label PDF for an order.
+     */
+    public function downloadDpdLabel(Request $request, Order $order): BinaryFileResponse|Response
+    {
+        // Check if user is authenticated
+        if (!$request->user()) {
+            abort(403, 'Authentication required to download DPD label');
+        }
+
+        // Check if DPD label exists for this order
+        if (!$order->pdf_label_path) {
+            abort(404, 'DPD label not found for this order');
+        }
+
+        // Check if PDF file exists on disk
+        if (!Storage::disk('local')->exists($order->pdf_label_path)) {
+            abort(404, 'DPD label file not found on storage');
+        }
+
+        $filePath = Storage::disk('local')->path($order->pdf_label_path);
+        
+        return response()->download(
+            $filePath,
+            "dpd_label_{$order->number}.pdf",
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="dpd_label_' . $order->number . '.pdf"',
+            ]
+        );
+    }
 }
