@@ -507,6 +507,11 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Generate PDF for order.
+     */
+    public function generatePdf(Request $request, Order $order): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'images' => ['required', 'array', 'min:1', 'max:9'],
