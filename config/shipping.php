@@ -40,8 +40,10 @@ return [
         ],
         'dpd' => [
             'name' => 'DPD',
-            'api_url' => env('DPD_API_URL', 'https://api.dpd.cz/v1'),
+            'api_url' => env('DPD_API_URL', 'https://geoapi.dpd.cz/v1'),
             'api_key' => env('DPD_API_KEY'),
+            'username' => env('DPD_USERNAME'),
+            'password' => env('DPD_PASSWORD'),
             'webhook_secret' => env('DPD_WEBHOOK_SECRET'),
             'enabled' => env('DPD_ENABLED', true),
             'test_mode' => env('DPD_TEST_MODE', true),

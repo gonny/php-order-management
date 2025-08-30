@@ -23,6 +23,11 @@ class Order extends Model
         'shipping_address_id',
         'billing_address_id',
         'carrier',
+        'shipping_method',
+        'pickup_point_id',
+        'pdf_label_path',
+        'dpd_shipment_id',
+        'parcel_group_id',
         'meta',
         'pdf_path',
     ];
@@ -45,6 +50,11 @@ class Order extends Model
     // Carrier constants
     public const CARRIER_BALIKOVNA = 'balikovna';
     public const CARRIER_DPD = 'dpd';
+
+    // Shipping method constants
+    public const SHIPPING_METHOD_DPD_HOME = 'DPD_Home';
+    public const SHIPPING_METHOD_DPD_PICKUP = 'DPD_PickupPoint';
+    public const SHIPPING_METHOD_BALIKOVNA_PICKUP = 'Balikovna_PickupPoint';
 
     public function client(): BelongsTo
     {

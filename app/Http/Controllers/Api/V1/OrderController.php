@@ -381,9 +381,132 @@ class OrderController extends Controller
     }
 
     /**
-     * Generate PDF for order.
+     * Generate DPD shipping label.
      */
-    public function generatePdf(Request $request, Order $order): JsonResponse
+    public function generateDpdLabel(Request $request, Order $order): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'shipping_method' => ['required', Rule::in(['DPD_Home', 'DPD_PickupPoint'])],
+            'pickup_point_id' => ['required_if:shipping_method,DPD_PickupPoint', 'string', 'max:50'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        if (!$order->isPaid()) {
+            return response()->json([
+                'error' => 'Cannot generate DPD label',
+                'message' => 'Order must be paid before generating shipping label',
+            ], 422);
+        }
+
+        if (!$order->shippingAddress) {
+            return response()->json([
+                'error' => 'Cannot generate DPD label',
+                'message' => 'Order must have a shipping address',
+            ], 422);
+        }
+
+        if (!in_array($order->shippingAddress->country_code, ['CZ', 'SK'])) {
+            return response()->json([
+                'error' => 'Cannot generate DPD label',
+                'message' => 'DPD shipping only available for CZ and SK',
+            ], 422);
+        }
+
+        if ($order->dpd_shipment_id) {
+            return response()->json([
+                'error' => 'DPD label already exists',
+                'message' => 'Order already has a DPD shipment',
+            ], 422);
+        }
+
+        try {
+            // Update order with DPD shipping details
+            $order->update([
+                'carrier' => Order::CARRIER_DPD,
+                'shipping_method' => $request->shipping_method,
+                'pickup_point_id' => $request->get('pickup_point_id'),
+            ]);
+
+            // Dispatch DPD label generation job
+            \App\Jobs\GenerateDpdLabelJob::dispatch($order);
+
+            // Log the label generation request
+            $this->auditLogger->logAuditEvent(
+                'order',
+                $order->id,
+                'dpd_label_generation_requested',
+                'api',
+                $this->getApiClientId($request),
+                [
+                    'shipping_method' => $request->shipping_method,
+                    'pickup_point_id' => $request->get('pickup_point_id'),
+                ]
+            );
+
+            return response()->json([
+                'message' => 'DPD label generation started. Check back later for completion.',
+                'order_id' => $order->id,
+                'status' => 'queued',
+                'shipping_method' => $request->shipping_method,
+            ], 202);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'DPD label generation failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete DPD shipment.
+     */
+    public function deleteDpdShipment(Request $request, Order $order): JsonResponse
+    {
+        if (!$order->dpd_shipment_id) {
+            return response()->json([
+                'error' => 'No DPD shipment to delete',
+                'message' => 'Order does not have a DPD shipment',
+            ], 422);
+        }
+
+        try {
+            // Dispatch DPD shipment deletion job
+            \App\Jobs\DeleteDpdShipmentJob::dispatch($order);
+
+            // Log the deletion request
+            $this->auditLogger->logAuditEvent(
+                'order',
+                $order->id,
+                'dpd_shipment_deletion_requested',
+                'api',
+                $this->getApiClientId($request),
+                [
+                    'shipment_id' => $order->dpd_shipment_id,
+                    'parcel_group_id' => $order->parcel_group_id,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'DPD shipment deletion started.',
+                'order_id' => $order->id,
+                'shipment_id' => $order->dpd_shipment_id,
+                'status' => 'queued',
+            ], 202);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'DPD shipment deletion failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
     {
         $validator = Validator::make($request->all(), [
             'images' => ['required', 'array', 'min:1', 'max:9'],
