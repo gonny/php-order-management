@@ -16,11 +16,15 @@ class ApiClient extends Model
         'secret_hash',
         'ip_allowlist',
         'active',
+        'last_used_at',
+        'meta',
     ];
 
     protected $casts = [
         'ip_allowlist' => 'array',
         'active' => 'boolean',
+        'meta' => 'array',
+        'last_used_at' => 'datetime',
     ];
 
     protected $hidden = [
@@ -38,7 +42,14 @@ class ApiClient extends Model
             return true; // No allowlist means all IPs are allowed
         }
 
-        return in_array($ip, $this->ip_allowlist);
+        // Ensure ip_allowlist is an array
+        $allowList = is_array($this->ip_allowlist) ? $this->ip_allowlist : json_decode($this->ip_allowlist, true);
+        
+        if (!is_array($allowList)) {
+            return true; // Fallback if parsing fails
+        }
+
+        return in_array($ip, $allowList);
     }
 
     public function scopeActive($query)

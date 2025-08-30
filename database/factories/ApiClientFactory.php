@@ -18,16 +18,19 @@ class ApiClientFactory extends Factory
      */
     public function definition(): array
     {
+        $secret = Str::random(64);
+        
         return [
             'key_id' => 'client_' . Str::random(10),
-            'secret' => Str::random(64),
+            'secret_hash' => bcrypt($secret), // Store secret hash for authentication
             'name' => $this->faker->company(),
-            'ip_allowlist' => json_encode(['127.0.0.1', '::1']),
-            'is_active' => true,
+            'ip_allowlist' => ['127.0.0.1', '::1'], // Store as array, will be cast to JSON
+            'active' => true,
             'last_used_at' => null,
             'meta' => [
                 'created_by' => 'factory',
                 'environment' => 'testing',
+                'secret' => $secret, // Store plain secret in meta for testing
             ],
         ];
     }

@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('secret_hash');
             $table->json('ip_allowlist')->nullable();
             $table->boolean('active')->default(true);
+            $table->timestamp('last_used_at')->nullable();
+            $table->json('meta')->nullable();
             $table->timestamps();
             
             $table->index(['key_id', 'active']);

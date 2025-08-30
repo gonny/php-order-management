@@ -381,6 +381,72 @@ class OrderController extends Controller
     }
 
     /**
+     * Generate PDF for order.
+     */
+    public function generatePdf(Request $request, Order $order): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'images' => ['required', 'array', 'min:1', 'max:9'],
+            'images.*' => ['required', 'url'],
+            'cell_size' => ['required', 'integer', 'min:100', 'max:600'],
+            'overlay_url' => ['required', 'url'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Additional validation for image URLs (MIME type check would require actual requests)
+        foreach ($request->images as $imageUrl) {
+            if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                return response()->json([
+                    'error' => 'Invalid image URL',
+                    'message' => "Invalid URL: {$imageUrl}",
+                ], 422);
+            }
+        }
+
+        try {
+            // Dispatch PDF generation job
+            \App\Jobs\GenerateOrderPdfJob::dispatch(
+                $order,
+                $request->images,
+                $request->cell_size,
+                $request->overlay_url
+            );
+
+            // Log the PDF generation request
+            $this->auditLogger->logAuditEvent(
+                'order',
+                $order->id,
+                'pdf_generation_requested',
+                'api',
+                $this->getApiClientId($request),
+                [
+                    'images_count' => count($request->images),
+                    'cell_size' => $request->cell_size,
+                    'overlay_url' => $request->overlay_url,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'PDF generation started. Check back later for completion.',
+                'order_id' => $order->id,
+                'status' => 'processing',
+            ], 202);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'PDF generation failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Get API client ID from request.
      */
     private function getApiClientId(Request $request): string
