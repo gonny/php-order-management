@@ -36,3 +36,6 @@ export interface User {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+// Re-export API types
+export * from './api.js';
