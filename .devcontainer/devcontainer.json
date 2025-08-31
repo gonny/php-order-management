@@ -14,7 +14,6 @@
         "esbenp.prettier-vscode",
         "laravel.vscode-laravel",
         "bradlc.vscode-tailwindcss",
-        "vue.volar",
         "ms-vscode.vscode-typescript-next",
         "nhedger.inertia",
         "damms005.devdb",
@@ -22,13 +21,13 @@
       ],
       "settings": {
         "composer.executablePath": "/usr/local/bin/composer",
-        "LaravelExtraIntellisense.basePath": "/workspaces/etiketou-invoice",
-        "LaravelExtraIntellisense.basePathForCode": "/workspaces/etiketou-invoice",
+        "LaravelExtraIntellisense.basePath": "/workspaces/php-order-management",
+        "LaravelExtraIntellisense.basePathForCode": "/workspaces/php-order-management",
         "php.executablePath": "/usr/local/bin/php",
         "vue.inlayHints.missingProps": true,
         "vue.complete.casing.props": "kebab",
         "typescript.preferences.importModuleSpecifier": "non-relative",
-        "inertia.pages": "/workspaces/etiketou-invoice/resources/js/Pages/**/*.vue"
+        //"inertia.pages": "/workspaces/php-order-management/resources/js/Pages/**/*.vue"
       }
     }
   },
@@ -53,6 +52,6 @@
   },
 
   	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "$(pwd)/setup.sh",
-  "remoteUser": "vscode"
+	// "postCreateCommand": "$(pwd)/setup.sh",
+  // "remoteUser": "vscode"
 }
