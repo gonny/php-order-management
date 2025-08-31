@@ -117,6 +117,34 @@ class DpdApiService
     }
 
     /**
+     * Get tracking information for a parcel
+     */
+    public function getTrackingInfo(string $parcelIdent): array
+    {
+        $this->checkRateLimit();
+        
+        Log::info('DPD API: Getting tracking info', ['parcel_ident' => $parcelIdent]);
+        
+        try {
+            $response = $this->makeApiRequest('GET', "/parcels/{$parcelIdent}/tracking");
+            
+            Log::info('DPD API: Tracking info retrieved successfully', [
+                'parcel_ident' => $parcelIdent,
+                'status' => $response['status'] ?? 'unknown'
+            ]);
+            
+            return $response;
+            
+        } catch (\Exception $e) {
+            Log::error('DPD API: Failed to get tracking info', [
+                'parcel_ident' => $parcelIdent,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Get pickup points for a location
      */
     public function getPickupPoints(string $countryCode, string $postalCode): array
@@ -262,8 +290,8 @@ class DpdApiService
             'packages' => $shipmentData['packages']
         ];
         
-        // Add pickup point for pickup point deliveries
-        if ($shipmentData['shipping_method'] === 'DPD_PickupPoint' && !empty($shipmentData['pickup_point_id'])) {
+        // Add pickup point for pickup point deliveries (both DPD and Balikovna pickup points)
+        if (in_array($shipmentData['shipping_method'], ['DPD_PickupPoint', 'Balikovna_PickupPoint']) && !empty($shipmentData['pickup_point_id'])) {
             $payload['pickup_point_id'] = $shipmentData['pickup_point_id'];
         }
         

@@ -190,6 +190,39 @@
             });
         }
     }
+
+    // Tracking refresh functionality
+    let isRefreshingTracking = false;
+
+    function handleRefreshTracking(orderId: string) {
+        isRefreshingTracking = true;
+        
+        fetch(`/api/v1/orders/${orderId}/tracking/refresh`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Tracking refresh failed:', data.message);
+                alert('Failed to refresh tracking: ' + data.message);
+            } else {
+                console.log('Tracking refreshed successfully:', data);
+                // Refresh order data to show updated tracking info
+                $orderQuery.refetch();
+            }
+        })
+        .catch(error => {
+            console.error('Tracking refresh error:', error);
+            alert('Failed to refresh tracking information');
+        })
+        .finally(() => {
+            isRefreshingTracking = false;
+        });
+    }
 </script>
 
 <svelte:head>
@@ -593,8 +626,37 @@
                                                             Consolidated Group: {order.parcel_group_id}
                                                         </p>
                                                     {/if}
+                                                    
+                                                    <!-- Display tracking information if available -->
+                                                    {#if order.shipping_labels && order.shipping_labels.length > 0}
+                                                        {@const dpdLabel = order.shipping_labels.find(label => label.carrier === 'dpd' && label.carrier_shipment_id === order.dpd_shipment_id)}
+                                                        {#if dpdLabel?.tracking_number}
+                                                            <p class="text-sm text-muted-foreground">
+                                                                Tracking: {dpdLabel.tracking_number}
+                                                            </p>
+                                                            {#if dpdLabel.meta?.tracking_data?.status}
+                                                                <p class="text-sm text-muted-foreground">
+                                                                    Status: <Badge variant="secondary">{dpdLabel.meta.tracking_data.status}</Badge>
+                                                                </p>
+                                                            {/if}
+                                                            {#if dpdLabel.meta?.last_tracking_update}
+                                                                <p class="text-xs text-muted-foreground">
+                                                                    Last updated: {formatDateTime(dpdLabel.meta.last_tracking_update)}
+                                                                </p>
+                                                            {/if}
+                                                        {/if}
+                                                    {/if}
                                                 </div>
                                                 <div class="flex space-x-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onclick={() => handleRefreshTracking(order.id)}
+                                                        disabled={isRefreshingTracking}
+                                                    >
+                                                        <RefreshCw class="mr-2 h-4 w-4 {isRefreshingTracking ? 'animate-spin' : ''}" />
+                                                        Refresh Tracking
+                                                    </Button>
                                                     {#if order.pdf_label_path}
                                                         <Button
                                                             variant="outline"

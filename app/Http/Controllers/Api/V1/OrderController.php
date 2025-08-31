@@ -509,6 +509,75 @@ class OrderController extends Controller
     }
 
     /**
+     * Refresh tracking information for DPD shipment.
+     */
+    public function refreshDpdTracking(Request $request, Order $order): JsonResponse
+    {
+        if (!$order->dpd_shipment_id) {
+            return response()->json([
+                'error' => 'No DPD shipment to track',
+                'message' => 'Order does not have a DPD shipment',
+            ], 422);
+        }
+
+        // Find the shipping label associated with this DPD shipment
+        $shippingLabel = $order->shippingLabels()
+            ->where('carrier', 'dpd')
+            ->where('carrier_shipment_id', $order->dpd_shipment_id)
+            ->first();
+
+        if (!$shippingLabel || !$shippingLabel->tracking_number) {
+            return response()->json([
+                'error' => 'No tracking number available',
+                'message' => 'DPD shipment does not have a tracking number',
+            ], 422);
+        }
+
+        try {
+            $dpdService = app(\App\Services\Shipping\DpdApiService::class);
+            $trackingData = $dpdService->getTrackingInfo($shippingLabel->tracking_number);
+
+            // Update the shipping label with the latest tracking information
+            $currentMeta = $shippingLabel->meta ?? [];
+            $currentMeta['tracking_data'] = $trackingData;
+            $currentMeta['last_tracking_update'] = now()->toISOString();
+
+            $shippingLabel->update([
+                'meta' => $currentMeta,
+                'raw_response' => array_merge($shippingLabel->raw_response ?? [], [
+                    'latest_tracking' => $trackingData,
+                    'tracking_updated_at' => now()->toISOString(),
+                ])
+            ]);
+
+            // Log the tracking refresh
+            $this->auditLogger->logAuditEvent(
+                'order',
+                $order->id,
+                'dpd_tracking_refreshed',
+                'api',
+                $this->getApiClientId($request),
+                [
+                    'tracking_number' => $shippingLabel->tracking_number,
+                    'tracking_status' => $trackingData['status'] ?? 'unknown',
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Tracking information refreshed successfully',
+                'tracking_data' => $trackingData,
+                'updated_at' => now()->toISOString(),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to refresh tracking information',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Generate PDF for order.
      */
     public function generatePdf(Request $request, Order $order): JsonResponse
