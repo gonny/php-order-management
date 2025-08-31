@@ -124,9 +124,16 @@
     }
 
     // DPD-specific handlers
+    let selectedPickupPointId: string | undefined = undefined; // Should be set via UI
     function handleCreateDpdLabel(shippingMethod: 'DPD_Home' | 'DPD_PickupPoint') {
-        // TODO: Implement pickup point selection for DPD_PickupPoint
-        const pickupPointId = shippingMethod === 'DPD_PickupPoint' ? 'PP123456' : undefined;
+        let pickupPointId: string | undefined = undefined;
+        if (shippingMethod === 'DPD_PickupPoint') {
+            if (!selectedPickupPointId) {
+                alert('Please select a pickup point before creating the label.');
+                return;
+            }
+            pickupPointId = selectedPickupPointId;
+        }
         
         // Call DPD-specific API endpoint
         fetch(`/api/v1/orders/${orderId}/label/dpd`, {
