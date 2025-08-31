@@ -16,6 +16,7 @@ Route::get('dashboard', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders/{order}/pdf', [PdfController::class, 'downloadOrderPdf'])->name('orders.pdf.download');
     Route::get('/orders/{order}/pdf-generation', [PdfController::class, 'showGenerationForm'])->name('orders.pdf.form');
+    Route::get('/orders/{order}/label/dpd/download', [PdfController::class, 'downloadDpdLabel'])->name('orders.dpd.label.download');
 });
 
 require __DIR__.'/settings.php';

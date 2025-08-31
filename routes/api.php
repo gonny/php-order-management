@@ -26,6 +26,9 @@ Route::prefix("v1")->middleware([
     Route::apiResource("orders", OrderController::class);
     Route::post("orders/{order}/transition", [OrderController::class, "transition"]);
     Route::post("orders/{order}/label", [OrderController::class, "generateLabel"]);
+    Route::post("orders/{order}/label/dpd", [OrderController::class, "generateDpdLabel"]);
+    Route::delete("orders/{order}/shipment/dpd", [OrderController::class, "deleteDpdShipment"]);
+    Route::post("orders/{order}/tracking/refresh", [OrderController::class, "refreshDpdTracking"]);
     Route::post("orders/{order}/pdf", [OrderController::class, "generatePdf"])->middleware(RateLimitApiMiddleware::class . ":10");
     
     // Client management endpoints
