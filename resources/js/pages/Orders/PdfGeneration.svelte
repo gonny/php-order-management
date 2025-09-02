@@ -161,7 +161,7 @@
 						</Card.Description>
 					</Card.Header>
 					<Card.Content class="space-y-6">
-						<form onsubmit|preventDefault={generatePdf}>
+						<form onsubmit={(e) => { e.preventDefault(); generatePdf(); }}>
 							<!-- Cell Size -->
 							<div class="space-y-2">
 								<Label for="cell_size">Cell Size (pixels)</Label>
