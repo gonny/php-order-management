@@ -2,6 +2,7 @@
     import { useClients } from '@/hooks/use-clients';
     import AppLayout from '@/layouts/AppLayout.svelte';
     import { type BreadcrumbItem, type ClientFilters } from '@/types';
+    import { SvelteURLSearchParams } from 'svelte/reactivity';
     import * as Card from '@/components/ui/card';
     import * as Table from '@/components/ui/table';
     import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@
     }
 
     function navigateToClients() {
-        const params = new URLSearchParams();
+        const params = new SvelteURLSearchParams();
         
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
@@ -178,7 +179,8 @@
                     <!-- Loading state -->
                     <div class="p-6">
                         <div class="space-y-4">
-                            {#each Array(5) as _}
+                            <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                            {#each Array(5) as _, index (index)}
                                 <div class="flex items-center space-x-4">
                                     <Skeleton class="h-12 w-12 rounded" />
                                     <div class="space-y-2 flex-1">
@@ -339,7 +341,7 @@
                                     {#each Array.from({length: Math.min(5, clientsData.meta.last_page)}, (_, i) => {
                                         const start = Math.max(1, clientsData.meta.current_page - 2);
                                         return start + i;
-                                    }).filter(page => page <= clientsData.meta.last_page) as pageNum}
+                                    }).filter(page => page <= clientsData.meta.last_page) as pageNum (pageNum)}
                                         <Button
                                             variant={pageNum === clientsData.meta.current_page ? "default" : "outline"}
                                             size="sm"

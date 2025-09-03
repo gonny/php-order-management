@@ -1,13 +1,10 @@
 <script lang="ts">
 	import { router, useForm } from '@inertiajs/svelte';
-	import type { ComponentProps } from 'svelte';
-	import { createEventDispatcher } from 'svelte';
 	import { toast } from 'svelte-sonner';
 	import Button from '@/components/ui/button/button.svelte';
 	import * as Card from '@/components/ui/card';
 	import Input from '@/components/ui/input/input.svelte';
 	import Label from '@/components/ui/label/label.svelte';
-	import Textarea from '@/components/ui/textarea/textarea.svelte';
 	import AppLayout from '@/layouts/AppLayout.svelte';
 
 	interface Props {
@@ -39,8 +36,6 @@
 		cell_size: 200,
 		overlay_url: ''
 	});
-
-	const dispatch = createEventDispatcher();
 
 	function addImageSlot() {
 		if ($form.images.length < 9) {
@@ -90,7 +85,7 @@
 			});
 
 			if (response.ok) {
-				const result = await response.json();
+				await response.json();
 				toast.success('PDF generation started! Check back in a few moments.');
 				// Optionally refresh the page or update state
 				setTimeout(() => {

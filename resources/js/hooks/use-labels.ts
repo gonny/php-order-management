@@ -1,7 +1,7 @@
 import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { apiClient, handleApiError } from '@/lib/api';
 import { orderKeys } from './use-orders';
-import type { LabelCreateDTO, ShippingLabel } from '@/types';
+import type { LabelCreateDTO } from '@/types';
 
 // Mutations
 export function useCreateLabel() {
@@ -25,6 +25,7 @@ export function useVoidLabel() {
   const queryClient = useQueryClient();
   
   return createMutation({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars  
     mutationFn: ({ labelId, orderId }: { labelId: string; orderId: string }) =>
       apiClient.voidLabel(labelId),
     onSuccess: (_, { orderId }) => {

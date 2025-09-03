@@ -6,7 +6,6 @@ import type {
   OrderFilters,
   OrderTransition,
   OrderUpdateDTO,
-  PaginatedResponse,
 } from '@/types';
 
 // Query keys

@@ -51,7 +51,10 @@ export interface ClientCreateDTO {
   meta?: Record<string, any>;
 }
 
-export interface ClientUpdateDTO extends Partial<ClientCreateDTO> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ClientUpdateDTO extends Partial<ClientCreateDTO> {
+  // Explicitly extends ClientCreateDTO with all fields optional
+}
 
 // Address interfaces
 export interface Address extends BaseEntity {

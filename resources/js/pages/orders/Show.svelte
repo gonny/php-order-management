@@ -20,10 +20,8 @@
         Package,
         User,
         History,
-        Webhook,
         AlertTriangle,
-        CheckCircle,
-        Clock
+        CheckCircle
     } from 'lucide-svelte';
     import { router } from '@inertiajs/svelte';
 
@@ -239,6 +237,7 @@
                     <Skeleton class="h-8 w-[100px]" />
                 </div>
                 <div class="grid gap-4 md:grid-cols-3">
+                    <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
                     {#each Array(3) as _, i (i)}
                         <Card.Root>
                             <Card.Header>

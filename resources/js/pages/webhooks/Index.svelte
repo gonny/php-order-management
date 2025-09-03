@@ -1,7 +1,8 @@
 <script lang="ts">
+    import { SvelteURLSearchParams } from 'svelte/reactivity';
     import { useWebhooks, useReprocessWebhook } from '@/hooks/use-webhooks';
     import AppLayout from '@/layouts/AppLayout.svelte';
-    import { type BreadcrumbItem, type WebhookFilters, type WebhookSource, type WebhookStatus, type Webhook } from '@/types';
+    import { type BreadcrumbItem, type WebhookFilters, type Webhook } from '@/types';
     import * as Card from '@/components/ui/card';
     import * as Dialog from '@/components/ui/dialog';
     import * as Table from '@/components/ui/table';
@@ -13,7 +14,6 @@
     import { Label } from '@/components/ui/label';
     import { Textarea } from '@/components/ui/textarea';
     import { 
-        Search, 
         Filter, 
         RefreshCw,
         ChevronLeft,
@@ -87,7 +87,7 @@
     }
 
     function navigateToWebhooks() {
-        const params = new URLSearchParams();
+        const params = new SvelteURLSearchParams();
         
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
@@ -193,7 +193,7 @@
                                 <span>Select source...</span>
                             </Select.Trigger>
                             <Select.Content>
-                                {#each sourceOptions as option}
+                                {#each sourceOptions as option (option.value)}
                                     <Select.Item value={option.value}>
                                         {option.label}
                                     </Select.Item>
@@ -210,7 +210,7 @@
                                 <span>Select status...</span>
                             </Select.Trigger>
                             <Select.Content>
-                                {#each statusOptions as option}
+                                {#each statusOptions as option (option.value)}
                                     <Select.Item value={option.value}>
                                         {option.label}
                                     </Select.Item>
@@ -263,7 +263,8 @@
                     <!-- Loading state -->
                     <div class="p-6">
                         <div class="space-y-4">
-                            {#each Array(5) as _}
+                            <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                            {#each Array(5) as _, index (index)}
                                 <div class="flex items-center space-x-4">
                                     <Skeleton class="h-12 w-12 rounded" />
                                     <div class="space-y-2 flex-1">
@@ -439,7 +440,7 @@
                                     {#each Array.from({length: Math.min(5, webhooksData.meta.last_page)}, (_, i) => {
                                         const start = Math.max(1, webhooksData.meta.current_page - 2);
                                         return start + i;
-                                    }).filter(page => page <= webhooksData.meta.last_page) as pageNum}
+                                    }).filter(page => page <= webhooksData.meta.last_page) as pageNum (pageNum)}
                                         <Button
                                             variant={pageNum === webhooksData.meta.current_page ? "default" : "outline"}
                                             size="sm"

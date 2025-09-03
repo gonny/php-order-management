@@ -52,7 +52,7 @@ class PdfController extends Controller
             abort(403, 'Authentication required');
         }
 
-        return inertia('Orders/PdfGeneration', [
+        return inertia('orders/PdfGeneration', [
             'order' => $order->load(['client', 'items']),
             'pdfExists' => !empty($order->pdf_path),
         ]);
