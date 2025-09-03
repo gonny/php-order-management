@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { useOrder, useTransitionOrder } from '@/hooks/use-orders';
+    import { useOrder, useTransitionOrder } from '@/packages/orders';
     import { useCreateLabel, useVoidLabel, useDownloadLabel } from '@/hooks/use-labels';
     import AppLayout from '@/layouts/AppLayout.svelte';
-    import { type BreadcrumbItem, type OrderTransition } from '@/types';
+    import type { BreadcrumbItem } from '@/types';
+    import type { OrderTransition } from '@/packages/orders';
     import * as Card from '@/components/ui/card';
     import * as Tabs from '@/components/ui/tabs';
     import * as Table from '@/components/ui/table';
@@ -24,6 +25,15 @@
         CheckCircle
     } from 'lucide-svelte';
     import { router } from '@inertiajs/svelte';
+    import {
+        getStatusColor,
+        getStatusLabel,
+        formatCurrency,
+        getValidTransitions,
+        getTransitionLabel,
+        getTransitionVariant,
+        requiresConfirmation,
+    } from '@/packages/orders';
 
     // Props from Inertia
     let { orderId } = $props<{ orderId: string }>();
@@ -43,56 +53,14 @@
     const voidLabelMutation = useVoidLabel();
     const downloadLabelMutation = useDownloadLabel();
 
-    // Status badge color mapping
-    const statusColors = {
-        new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-        confirmed: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-        paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-        fulfilled: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-        completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-        cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-        on_hold: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-        failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    };
-
-    // Available transitions based on current status
-    function getAvailableTransitions(status: string): { transition: OrderTransition; label: string; variant?: string }[] {
-        const transitions: Record<string, { transition: OrderTransition; label: string; variant?: string }[]> = {
-            new: [
-                { transition: 'confirm', label: 'Confirm Order' },
-                { transition: 'cancel', label: 'Cancel Order', variant: 'destructive' },
-            ],
-            confirmed: [
-                { transition: 'pay', label: 'Mark as Paid' },
-                { transition: 'hold', label: 'Put on Hold', variant: 'secondary' },
-                { transition: 'cancel', label: 'Cancel Order', variant: 'destructive' },
-            ],
-            paid: [
-                { transition: 'fulfill', label: 'Mark as Fulfilled' },
-                { transition: 'hold', label: 'Put on Hold', variant: 'secondary' },
-                { transition: 'fail', label: 'Mark as Failed', variant: 'destructive' },
-            ],
-            fulfilled: [
-                { transition: 'complete', label: 'Complete Order' },
-            ],
-            on_hold: [
-                { transition: 'restart', label: 'Restart Order' },
-                { transition: 'cancel', label: 'Cancel Order', variant: 'destructive' },
-            ],
-            failed: [
-                { transition: 'restart', label: 'Restart Order' },
-                { transition: 'cancel', label: 'Cancel Order', variant: 'destructive' },
-            ],
-        };
-        
-        return transitions[status] || [];
-    }
-
-    function formatCurrency(amount: number): string {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'EUR',
-        }).format(amount);
+    // Available transitions based on current status - now using utility functions
+    function getAvailableTransitions(status: string) {
+        return getValidTransitions(status as any).map(transition => ({
+            transition,
+            label: getTransitionLabel(transition),
+            variant: getTransitionVariant(transition),
+            requiresConfirmation: requiresConfirmation(transition),
+        }));
     }
 
     function formatDateTime(dateString: string): string {
@@ -302,8 +270,8 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <Badge class={statusColors[order.status]}>
-                        {order.status}
+                    <Badge class={getStatusColor(order.status)}>
+                        {getStatusLabel(order.status)}
                     </Badge>
                     <Button
                         variant="outline"
@@ -382,8 +350,8 @@
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-muted-foreground">Status</p>
-                                        <Badge class={statusColors[order.status]}>
-                                            {order.status}
+                                        <Badge class={getStatusColor(order.status)}>
+                                            {getStatusLabel(order.status)}
                                         </Badge>
                                     </div>
                                     <div>
@@ -408,7 +376,7 @@
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-muted-foreground">Total</p>
-                                        <p class="text-sm font-semibold">{formatCurrency(order.total_amount)}</p>
+                                        <p class="text-sm font-semibold">{formatCurrency(order.total_amount, order.currency)}</p>
                                     </div>
                                     {#if order.dpd_shipment_id}
                                         <div class="col-span-2">
@@ -436,16 +404,16 @@
                             <Card.Content class="space-y-4">
                                 <div class="flex justify-between">
                                     <span class="text-sm">Subtotal</span>
-                                    <span class="text-sm">{formatCurrency(order.subtotal)}</span>
+                                    <span class="text-sm">{formatCurrency(order.subtotal, order.currency)}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-sm">Tax</span>
-                                    <span class="text-sm">{formatCurrency(order.tax_total)}</span>
+                                    <span class="text-sm">{formatCurrency(order.tax_total, order.currency)}</span>
                                 </div>
                                 <Separator />
                                 <div class="flex justify-between font-semibold">
                                     <span>Total</span>
-                                    <span>{formatCurrency(order.total)}</span>
+                                    <span>{formatCurrency(order.total, order.currency)}</span>
                                 </div>
                             </Card.Content>
                         </Card.Root>
@@ -477,9 +445,9 @@
                                                 <Table.Cell class="font-medium">{item.sku}</Table.Cell>
                                                 <Table.Cell>{item.name}</Table.Cell>
                                                 <Table.Cell class="text-center">{item.qty}</Table.Cell>
-                                                <Table.Cell class="text-right">{formatCurrency(item.price)}</Table.Cell>
+                                                <Table.Cell class="text-right">{formatCurrency(item.price, order.currency)}</Table.Cell>
                                                 <Table.Cell class="text-right">{(item.tax_rate * 100).toFixed(1)}%</Table.Cell>
-                                                <Table.Cell class="text-right">{formatCurrency(item.total)}</Table.Cell>
+                                                <Table.Cell class="text-right">{formatCurrency(item.total, order.currency)}</Table.Cell>
                                             </Table.Row>
                                         {/each}
                                     </Table.Body>
