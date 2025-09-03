@@ -244,7 +244,7 @@
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {#each clientsData.data as client}
+                            {#each clientsData.data as client (client.id)}
                                 <Table.Row>
                                     <Table.Cell>
                                         <div class="flex items-center space-x-3">

@@ -239,7 +239,7 @@
                     <Skeleton class="h-8 w-[100px]" />
                 </div>
                 <div class="grid gap-4 md:grid-cols-3">
-                    {#each Array(3) as _}
+                    {#each Array(3) as _, i (i)}
                         <Card.Root>
                             <Card.Header>
                                 <Skeleton class="h-4 w-[100px]" />
@@ -334,9 +334,9 @@
                     </Card.Header>
                     <Card.Content>
                         <div class="flex flex-wrap gap-2">
-                            {#each getAvailableTransitions(order.status) as { transition, label, variant }}
+                            {#each getAvailableTransitions(order.status) as { transition, label, variant } (transition)}
                                 <Button
-                                    variant={variant || 'default'}
+                                    variant={(variant as "default" | "link" | "outline" | "destructive" | "secondary" | "ghost" | undefined) || 'default'}
                                     size="sm"
                                     onclick={() => handleTransition(transition)}
                                     disabled={$transitionMutation.isPending}
@@ -473,7 +473,7 @@
                                         </Table.Row>
                                     </Table.Header>
                                     <Table.Body>
-                                        {#each order.items as item}
+                                        {#each order.items as item (item.id)}
                                             <Table.Row>
                                                 <Table.Cell class="font-medium">{item.sku}</Table.Cell>
                                                 <Table.Cell>{item.name}</Table.Cell>
@@ -714,7 +714,7 @@
                             <Card.Content>
                                 {#if order.shipping_labels && order.shipping_labels.length > 0}
                                     <div class="space-y-4">
-                                        {#each order.shipping_labels as label}
+                                        {#each order.shipping_labels as label (label.id)}
                                             <div class="flex items-center justify-between p-4 border rounded-lg">
                                                 <div class="space-y-1">
                                                     <p class="text-sm font-medium">

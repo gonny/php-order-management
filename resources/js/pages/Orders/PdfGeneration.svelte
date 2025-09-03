@@ -205,7 +205,7 @@
 									{/if}
 								</div>
 
-								{#each $form.images as imageUrl, index}
+								{#each $form.images as imageUrl, index (index)}
 									<div class="flex space-x-2">
 										<div class="flex-1">
 											<Input

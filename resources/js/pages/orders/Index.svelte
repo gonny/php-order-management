@@ -208,7 +208,7 @@
                     <!-- Status Filter -->
                     <div class="space-y-2">
                         <Label for="status">Status</Label>
-                        <Select.Root multiple>
+                        <Select.Root type="single">
                             <Select.Trigger>
                                 <span>Select status...</span>
                             </Select.Trigger>
@@ -225,7 +225,7 @@
                     <!-- Carrier Filter -->
                     <div class="space-y-2">
                         <Label for="carrier">Carrier</Label>
-                        <Select.Root multiple>
+                        <Select.Root type="single">
                             <Select.Trigger>
                                 <span>Select carrier...</span>
                             </Select.Trigger>
@@ -339,7 +339,7 @@
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {#each ordersData.data as order}
+                            {#each ordersData.data as order (order.id)}
                                 <Table.Row>
                                     <Table.Cell class="font-medium">#{order.number}</Table.Cell>
                                     <Table.Cell>

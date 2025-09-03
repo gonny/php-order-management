@@ -1,7 +1,7 @@
 <script lang="ts">
     import { useWebhooks, useReprocessWebhook } from '@/hooks/use-webhooks';
     import AppLayout from '@/layouts/AppLayout.svelte';
-    import { type BreadcrumbItem, type WebhookFilters, type WebhookSource, type WebhookStatus } from '@/types';
+    import { type BreadcrumbItem, type WebhookFilters, type WebhookSource, type WebhookStatus, type Webhook } from '@/types';
     import * as Card from '@/components/ui/card';
     import * as Dialog from '@/components/ui/dialog';
     import * as Table from '@/components/ui/table';
@@ -63,7 +63,7 @@
     ];
 
     // Status badge color mapping
-    const statusColors = {
+    const statusColors: Record<string, string> = {
         pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
         processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
         completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -71,7 +71,7 @@
     };
 
     // Dialog state
-    let selectedWebhook = $state(null);
+    let selectedWebhook: Webhook | null = $state(null);
     let showDetailDialog = $state(false);
     let copiedPayload = $state(false);
 
@@ -188,7 +188,7 @@
                     <!-- Source Filter -->
                     <div class="space-y-2">
                         <Label for="source">Source</Label>
-                        <Select.Root multiple>
+                        <Select.Root type="single">
                             <Select.Trigger>
                                 <span>Select source...</span>
                             </Select.Trigger>
@@ -205,7 +205,7 @@
                     <!-- Status Filter -->
                     <div class="space-y-2">
                         <Label for="status">Status</Label>
-                        <Select.Root multiple>
+                        <Select.Root type="single">
                             <Select.Trigger>
                                 <span>Select status...</span>
                             </Select.Trigger>
@@ -339,7 +339,7 @@
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {#each webhooksData.data as webhook}
+                            {#each webhooksData.data as webhook (webhook.id)}
                                 <Table.Row>
                                     <Table.Cell>
                                         <Badge variant="secondary" class="capitalize">
@@ -547,7 +547,7 @@
                         <Textarea
                             readonly
                             value={JSON.stringify(selectedWebhook.payload, null, 2)}
-                            rows="15"
+                            rows={15}
                             class="font-mono text-sm"
                         />
                     </div>
@@ -557,8 +557,10 @@
                         {#if selectedWebhook.status === 'failed'}
                             <Button
                                 onclick={() => {
-                                    handleReprocess(selectedWebhook.id);
-                                    showDetailDialog = false;
+                                    if (selectedWebhook) {
+                                        handleReprocess(selectedWebhook.id);
+                                        showDetailDialog = false;
+                                    }
                                 }}
                                 disabled={$reprocessMutation.isPending}
                             >

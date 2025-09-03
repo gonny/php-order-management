@@ -233,7 +233,7 @@ export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 export const apiErrorSchema = z.object({
   error: z.string(),
   message: z.string().optional(),
-  errors: z.record(z.array(z.string())).optional()
+  errors: z.record(z.string(), z.array(z.string())).optional()
 });
 
 // Dashboard schemas

@@ -122,6 +122,8 @@ export interface Order extends BaseEntity {
   pickup_point_id?: string;       // Used in: orders/Show.svelte:400
   dpd_shipment_id?: string;       // Used in: orders/Show.svelte:414
   tracking_number?: string;       // Used in multiple places
+  parcel_group_id?: string;       // Used in: orders/Show.svelte:624
+  pdf_label_path?: string;        // Used in: orders/Show.svelte:660
   notes?: string;
   meta?: Record<string, any>;
   items?: OrderItem[];
@@ -157,6 +159,9 @@ export interface ShippingLabel extends BaseEntity {
   label_url?: string;
   status: 'pending' | 'generated' | 'printed' | 'voided';
   carrier_data?: Record<string, any>;
+  carrier_shipment_id?: string;   // Used in: orders/Show.svelte:632
+  meta?: Record<string, any>;     // Used in: orders/Show.svelte:637
+  file_path?: string;             // Used in: orders/Show.svelte:740
 }
 
 export interface LabelCreateDTO {
