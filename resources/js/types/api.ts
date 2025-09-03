@@ -117,6 +117,11 @@ export interface Order extends BaseEntity {
   subtotal: number;
   tax_total: number;
   total: number;
+  total_amount: number;           // Used in: orders/Show.svelte:412
+  shipping_method?: string;       // Used in: orders/Show.svelte:394
+  pickup_point_id?: string;       // Used in: orders/Show.svelte:400
+  dpd_shipment_id?: string;       // Used in: orders/Show.svelte:414
+  tracking_number?: string;       // Used in multiple places
   notes?: string;
   meta?: Record<string, any>;
   items?: OrderItem[];

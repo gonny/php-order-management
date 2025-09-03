@@ -65,8 +65,11 @@ let isRefreshingTracking = $state(false);
 <AppLayout title="PDF Generation - Order {order.number}">
 
 // ✅ Should be
+<svelte:head>
+  <title>PDF Generation - Order {order.number}</title>
+</svelte:head>
 <AppLayout>
-  <svelte:fragment slot="title">PDF Generation - Order {order.number}</svelte:fragment>
+  <!-- component content -->
 </AppLayout>
 ```
 
@@ -78,6 +81,7 @@ let isRefreshingTracking = $state(false);
 - Missing keys in `{#each}` blocks (accessibility and performance)
 - Unused imports and variables (bundle size)
 - Using mutable URLSearchParams instead of SvelteURLSearchParams
+- Consider async imports of Svelte components for code splitting
 
 ```svelte
 <!-- ❌ Missing key -->
@@ -85,6 +89,11 @@ let isRefreshingTracking = $state(false);
 
 <!-- ✅ With key -->
 {#each orders as order (order.id)}
+
+<!-- ✅ Async component import -->
+{#await import('./HeavyComponent.svelte') then Component}
+  <Component.default />
+{/await}
 ```
 
 #### 6. Directory Structure Inconsistencies

@@ -113,7 +113,11 @@
 	}
 </script>
 
-<AppLayout title="PDF Generation - Order {order.number}">
+<svelte:head>
+	<title>PDF Generation - Order {order.number}</title>
+</svelte:head>
+
+<AppLayout>
 	<div class="py-12">
 		<div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
 			<div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
@@ -207,7 +211,12 @@
 											<Input
 												type="url"
 												value={imageUrl}
-												onchange={(e) => updateImageUrl(index, e.target.value)}
+												onchange={(e) => {
+													const target = e.target as HTMLInputElement;
+													if (target) {
+														updateImageUrl(index, target.value);
+													}
+												}}
 												placeholder="https://cf2.r2.link/object{index + 1}.png"
 												class="w-full"
 											/>

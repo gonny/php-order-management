@@ -192,7 +192,7 @@
     }
 
     // Tracking refresh functionality
-    let isRefreshingTracking = false;
+    let isRefreshingTracking = $state(false);
 
     function handleRefreshTracking(orderId: string) {
         isRefreshingTracking = true;
