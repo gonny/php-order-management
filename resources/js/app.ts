@@ -1,7 +1,7 @@
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/svelte';
 import { QueryClient } from '@tanstack/svelte-query';
 import { hydrate, mount } from 'svelte';
-import { setQueryClient } from '@/contexts/query-client';
+import AppWithQueryClient from './components/AppWithQueryClient.svelte';
 import '../css/app.css';
 import './bootstrap';
 
@@ -30,13 +30,24 @@ createInertiaApp({
         return pages[`./pages/${name}.svelte`];
     },
     setup({ el, App, props }) {
-        // Set the query client in context before mounting
-        setQueryClient(queryClient);
-        
         if (el && el.dataset.serverRendered === 'true') {
-            hydrate(App, { target: el, props });
+            hydrate(AppWithQueryClient, { 
+                target: el, 
+                props: { 
+                    App, 
+                    props, 
+                    queryClient 
+                } 
+            });
         } else if (el) {
-            mount(App, { target: el, props });
+            mount(AppWithQueryClient, { 
+                target: el, 
+                props: { 
+                    App, 
+                    props, 
+                    queryClient 
+                } 
+            });
         }
     },
 });

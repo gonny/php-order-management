@@ -4,7 +4,7 @@ import createServer from '@inertiajs/svelte/server';
 import { QueryClient } from '@tanstack/svelte-query';
 import type { LegacyComponentType } from 'svelte/legacy';
 import { render } from 'svelte/server';
-import { setQueryClient } from '@/contexts/query-client';
+import AppWithQueryClient from './components/AppWithQueryClient.svelte';
 
 createServer((page) =>
     createInertiaApp({
@@ -24,10 +24,14 @@ createServer((page) =>
                 },
             });
             
-            // Set the query client in context
-            setQueryClient(queryClient);
-            
-            return render(App, { props });
+            // Use AppWithQueryClient to properly provide TanStack Query context during SSR
+            return render(AppWithQueryClient, { 
+                props: { 
+                    App, 
+                    props, 
+                    queryClient 
+                } 
+            });
         },
     }),
 );

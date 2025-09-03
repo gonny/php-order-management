@@ -27,7 +27,7 @@
         "vue.inlayHints.missingProps": true,
         "vue.complete.casing.props": "kebab",
         "typescript.preferences.importModuleSpecifier": "non-relative",
-        //"inertia.pages": "/workspaces/php-order-management/resources/js/Pages/**/*.vue"
+        "inertia.pages": "/workspaces/php-order-management/resources/js/**/*.svelte"
       }
     }
   },

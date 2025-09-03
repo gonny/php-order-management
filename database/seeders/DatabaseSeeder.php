@@ -14,10 +14,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // User::factory(10)->create();
-
-        User::factory()->create([
+        $userProps = [
             'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+            'email' => 'test@example.com'
+        ];
+        if (env('APP_ENV') != "production") {
+            $userProps['password'] = bcrypt('Passw0rd1!');
+        }
+        User::factory()->create($userProps);
     }
 }
