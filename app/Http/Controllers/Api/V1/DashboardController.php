@@ -18,10 +18,11 @@ class DashboardController extends Controller
         $metrics = [
             'orders' => [
                 'total' => Order::count(),
-                'pending' => Order::where('status', 'pending')->count(),
-                'processing' => Order::where('status', 'processing')->count(),
-                'shipped' => Order::where('status', 'shipped')->count(),
-                'delivered' => Order::where('status', 'delivered')->count(),
+                'new' => Order::where('status', 'new')->count(),
+                'confirmed' => Order::where('status', 'confirmed')->count(),
+                'paid' => Order::where('status', 'paid')->count(),
+                'fulfilled' => Order::where('status', 'fulfilled')->count(),
+                'completed' => Order::where('status', 'completed')->count(),
                 'cancelled' => Order::where('status', 'cancelled')->count(),
                 'today' => Order::whereDate('created_at', today())->count(),
                 'this_week' => Order::whereBetween('created_at', [
@@ -57,7 +58,7 @@ class DashboardController extends Controller
                     return [
                         'id' => $order->id,
                         'order_number' => $order->order_number,
-                        'client_name' => $order->client?->name ?? 'Unknown',
+                        'client_name' => $order->client?->full_name ?? 'Unknown',
                         'status' => $order->status,
                         'total_amount' => $order->total_amount,
                         'created_at' => $order->created_at->toISOString(),
