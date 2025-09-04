@@ -1,7 +1,8 @@
 <script lang="ts">
+    import { SvelteURLSearchParams } from 'svelte/reactivity';
     import { useWebhooks, useReprocessWebhook } from '@/hooks/use-webhooks';
     import AppLayout from '@/layouts/AppLayout.svelte';
-    import { type BreadcrumbItem, type WebhookFilters, type WebhookSource, type WebhookStatus } from '@/types';
+    import { type BreadcrumbItem, type WebhookFilters, type Webhook } from '@/types';
     import * as Card from '@/components/ui/card';
     import * as Dialog from '@/components/ui/dialog';
     import * as Table from '@/components/ui/table';
@@ -13,7 +14,6 @@
     import { Label } from '@/components/ui/label';
     import { Textarea } from '@/components/ui/textarea';
     import { 
-        Search, 
         Filter, 
         RefreshCw,
         ChevronLeft,
@@ -63,7 +63,7 @@
     ];
 
     // Status badge color mapping
-    const statusColors = {
+    const statusColors: Record<string, string> = {
         pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
         processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
         completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -71,7 +71,7 @@
     };
 
     // Dialog state
-    let selectedWebhook = $state(null);
+    let selectedWebhook: Webhook | null = $state(null);
     let showDetailDialog = $state(false);
     let copiedPayload = $state(false);
 
@@ -87,7 +87,7 @@
     }
 
     function navigateToWebhooks() {
-        const params = new URLSearchParams();
+        const params = new SvelteURLSearchParams();
         
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
@@ -188,12 +188,12 @@
                     <!-- Source Filter -->
                     <div class="space-y-2">
                         <Label for="source">Source</Label>
-                        <Select.Root multiple>
+                        <Select.Root type="single">
                             <Select.Trigger>
                                 <span>Select source...</span>
                             </Select.Trigger>
                             <Select.Content>
-                                {#each sourceOptions as option}
+                                {#each sourceOptions as option (option.value)}
                                     <Select.Item value={option.value}>
                                         {option.label}
                                     </Select.Item>
@@ -205,12 +205,12 @@
                     <!-- Status Filter -->
                     <div class="space-y-2">
                         <Label for="status">Status</Label>
-                        <Select.Root multiple>
+                        <Select.Root type="single">
                             <Select.Trigger>
                                 <span>Select status...</span>
                             </Select.Trigger>
                             <Select.Content>
-                                {#each statusOptions as option}
+                                {#each statusOptions as option (option.value)}
                                     <Select.Item value={option.value}>
                                         {option.label}
                                     </Select.Item>
@@ -263,7 +263,8 @@
                     <!-- Loading state -->
                     <div class="p-6">
                         <div class="space-y-4">
-                            {#each Array(5) as _}
+                            <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                            {#each Array(5) as _, index (index)}
                                 <div class="flex items-center space-x-4">
                                     <Skeleton class="h-12 w-12 rounded" />
                                     <div class="space-y-2 flex-1">
@@ -339,7 +340,7 @@
                             </Table.Row>
                         </Table.Header>
                         <Table.Body>
-                            {#each webhooksData.data as webhook}
+                            {#each webhooksData.data as webhook (webhook.id)}
                                 <Table.Row>
                                     <Table.Cell>
                                         <Badge variant="secondary" class="capitalize">
@@ -439,7 +440,7 @@
                                     {#each Array.from({length: Math.min(5, webhooksData.meta.last_page)}, (_, i) => {
                                         const start = Math.max(1, webhooksData.meta.current_page - 2);
                                         return start + i;
-                                    }).filter(page => page <= webhooksData.meta.last_page) as pageNum}
+                                    }).filter(page => page <= webhooksData.meta.last_page) as pageNum (pageNum)}
                                         <Button
                                             variant={pageNum === webhooksData.meta.current_page ? "default" : "outline"}
                                             size="sm"
@@ -547,7 +548,7 @@
                         <Textarea
                             readonly
                             value={JSON.stringify(selectedWebhook.payload, null, 2)}
-                            rows="15"
+                            rows={15}
                             class="font-mono text-sm"
                         />
                     </div>
@@ -557,8 +558,10 @@
                         {#if selectedWebhook.status === 'failed'}
                             <Button
                                 onclick={() => {
-                                    handleReprocess(selectedWebhook.id);
-                                    showDetailDialog = false;
+                                    if (selectedWebhook) {
+                                        handleReprocess(selectedWebhook.id);
+                                        showDetailDialog = false;
+                                    }
                                 }}
                                 disabled={$reprocessMutation.isPending}
                             >

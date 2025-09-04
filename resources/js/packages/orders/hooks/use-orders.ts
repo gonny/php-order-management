@@ -1,12 +1,12 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/lib/api';
+import { apiClient, handleApiError } from '@/packages/shared/lib/api';
 import type {
   Order,
   OrderCreateDTO,
-  OrderFilters,
-  OrderTransition,
   OrderUpdateDTO,
-} from '@/types';
+  OrderTransition,
+} from '../types/order';
+import type { OrderFilters } from '../types/filters';
 
 // Query keys
 export const orderKeys = {

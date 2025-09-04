@@ -1,7 +1,6 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { apiClient, handleApiError } from '@/lib/api';
 import type {
-  Webhook,
   WebhookFilters,
 } from '@/types';
 

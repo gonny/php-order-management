@@ -1,6 +1,5 @@
-import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/lib/api';
-import type { DashboardMetrics } from '@/types';
+import { createQuery } from '@tanstack/svelte-query';
+import { apiClient } from '@/lib/api';
 
 // Query keys
 export const dashboardKeys = {

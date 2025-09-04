@@ -53,7 +53,7 @@ export const clientCreateSchema = z.object({
   last_name: z.string().min(1, 'Last name is required').max(255),
   company: z.string().max(255).optional(),
   vat_id: z.string().max(255).optional(),
-  meta: z.record(z.any()).optional()
+  meta: z.record(z.string(), z.any()).optional()
 });
 
 export const clientUpdateSchema = clientCreateSchema.partial();
@@ -93,7 +93,7 @@ export const orderCreateSchema = z.object({
   carrier: carrierSchema,
   currency: currencySchema,
   notes: z.string().max(1000).optional(),
-  meta: z.record(z.any()).optional()
+  meta: z.record(z.string(), z.any()).optional()
 }).refine(data => data.client || data.client_id, {
   message: 'Either client or client_id must be provided',
   path: ['client']
@@ -102,7 +102,7 @@ export const orderCreateSchema = z.object({
 export const orderUpdateSchema = z.object({
   status: orderStatusSchema.optional(),
   notes: z.string().max(1000).optional(),
-  meta: z.record(z.any()).optional()
+  meta: z.record(z.string(), z.any()).optional()
 });
 
 export const orderSchema = z.object({
@@ -122,7 +122,7 @@ export const orderSchema = z.object({
   tax_total: z.number(),
   total: z.number(),
   notes: z.string().nullable(),
-  meta: z.record(z.any()).nullable(),
+  meta: z.record(z.string(), z.any()).nullable(),
   items: z.array(orderItemSchema).optional(),
   created_at: z.string(),
   updated_at: z.string()
@@ -130,7 +130,7 @@ export const orderSchema = z.object({
 
 // Shipping Label schemas
 export const labelCreateSchema = z.object({
-  carrier_specific_data: z.record(z.any()).optional()
+  carrier_specific_data: z.record(z.string(), z.any()).optional()
 });
 
 export const shippingLabelSchema = z.object({
@@ -141,7 +141,7 @@ export const shippingLabelSchema = z.object({
   tracking_number: z.string(),
   label_url: z.string().nullable(),
   status: z.enum(['pending', 'generated', 'printed', 'voided']),
-  carrier_data: z.record(z.any()).nullable(),
+  carrier_data: z.record(z.string(), z.any()).nullable(),
   created_at: z.string(),
   updated_at: z.string()
 });
@@ -152,7 +152,7 @@ export const webhookSchema = z.object({
   source: webhookSourceSchema,
   event_type: z.string(),
   status: webhookStatusSchema,
-  payload: z.record(z.any()),
+  payload: z.record(z.string(), z.any()),
   processed_at: z.string().nullable(),
   error_message: z.string().nullable(),
   retry_count: z.number(),
@@ -233,7 +233,7 @@ export const apiResponseSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 export const apiErrorSchema = z.object({
   error: z.string(),
   message: z.string().optional(),
-  errors: z.record(z.array(z.string())).optional()
+  errors: z.record(z.string(), z.array(z.string())).optional()
 });
 
 // Dashboard schemas

@@ -19,7 +19,7 @@
     const dashboardQuery = useDashboardMetrics();
 
     // Status badge color mapping
-    const statusColors = {
+    const statusColors: Record<string, string> = {
         new: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
         confirmed: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
         paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -72,7 +72,8 @@
         {#if $dashboardQuery.isLoading}
             <!-- Loading state -->
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {#each Array(8) as _}
+                <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+                {#each Array(8) as _, index (index)}
                     <Card.Root>
                         <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <Skeleton class="h-4 w-[100px]" />
@@ -112,7 +113,7 @@
             
             <!-- Order Status Cards -->
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {#each Object.entries(metrics.order_counts) as [status, count]}
+                {#each Object.entries(metrics.order_counts) as [status, count] (status)}
                     <Card.Root>
                         <Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
                             <Card.Title class="text-sm font-medium capitalize">
@@ -191,7 +192,7 @@
                     </Card.Header>
                     <Card.Content>
                         <div class="space-y-4">
-                            {#each metrics.recent_orders.slice(0, 5) as order}
+                            {#each metrics.recent_orders.slice(0, 5) as order (order.id)}
                                 <div class="flex items-center justify-between">
                                     <div class="flex flex-col">
                                         <p class="text-sm font-medium">#{order.number}</p>
@@ -226,7 +227,7 @@
                     </Card.Header>
                     <Card.Content>
                         <div class="space-y-4">
-                            {#each metrics.recent_activities.slice(0, 5) as activity}
+                            {#each metrics.recent_activities.slice(0, 5) as activity (activity.id)}
                                 <div class="flex items-center justify-between">
                                     <div class="flex flex-col">
                                         <p class="text-sm font-medium">{activity.action}</p>
@@ -255,7 +256,7 @@
                     </Card.Header>
                     <Card.Content>
                         <div class="grid gap-4 md:grid-cols-3">
-                            {#each Object.entries(metrics.queue_sizes) as [queueName, size]}
+                            {#each Object.entries(metrics.queue_sizes) as [queueName, size] (queueName)}
                                 <div class="flex items-center justify-between p-3 border rounded-lg">
                                     <div class="flex flex-col">
                                         <p class="text-sm font-medium capitalize">{queueName}</p>
