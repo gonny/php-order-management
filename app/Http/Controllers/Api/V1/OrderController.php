@@ -272,10 +272,10 @@ class OrderController extends Controller
     /**
      * Transition order status.
      */
-    public function transition(Request $request, Order $order): JsonResponse
+    public function transition(Request $request, Order $order, string $transition): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'status' => ['required', Rule::in([
+        $validator = Validator::make(['transition' => $transition] + $request->all(), [
+            'transition' => ['required', Rule::in([
                 Order::STATUS_CONFIRMED,
                 Order::STATUS_PAID,
                 Order::STATUS_FULFILLED,
@@ -298,7 +298,7 @@ class OrderController extends Controller
         try {
             $transitionedOrder = $this->stateMachine->transition(
                 $order,
-                $request->status,
+                $transition,
                 $request->get('reason'),
                 $request->get('metadata'),
                 'api',
@@ -307,7 +307,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'data' => $transitionedOrder->load(['client', 'items', 'shippingAddress', 'billingAddress']),
-                'message' => "Order status changed to {$request->status}",
+                'message' => "Order status changed to {$transition}",
             ]);
 
         } catch (InvalidOrderTransitionException $e) {
