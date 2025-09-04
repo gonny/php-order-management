@@ -337,7 +337,7 @@
                                     {@const StatusIcon = getStatusIcon(webhook.status)}
                                     <div class="flex items-center space-x-2">
                                         <StatusIcon class="h-4 w-4" />
-                                        <Badge class="{getStatusVariant(webhook.status)}">
+                                        <Badge class={getStatusVariant(webhook.status)}>
                                             {webhook.status}
                                         </Badge>
                                     </div>
@@ -467,13 +467,15 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <Label class="text-sm font-medium">Status</Label>
-                        <p class="text-sm text-muted-foreground mt-1">
+                        {#if selectedWebhook}
                             {@const StatusIcon = getStatusIcon(selectedWebhook.status)}
-                            <Badge class="{getStatusVariant(selectedWebhook.status)} inline-flex items-center gap-1">
-                                <StatusIcon class="h-3 w-3" />
-                                {selectedWebhook.status}
-                            </Badge>
-                        </p>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                <Badge class={getStatusVariant(selectedWebhook.status)} class="inline-flex items-center gap-1">
+                                    <StatusIcon class="h-3 w-3" />
+                                    {selectedWebhook.status}
+                                </Badge>
+                            </p>
+                        {/if}
                     </div>
                     <div>
                         <Label class="text-sm font-medium">Received At</Label>

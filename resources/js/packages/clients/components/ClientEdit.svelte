@@ -17,7 +17,7 @@
     // Get client data
     let clientQuery = $derived(useClient(clientId));
 
-    $: breadcrumbs = $clientQuery.data ? [
+    let breadcrumbs = $derived($clientQuery.data ? [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Clients', href: '/clients' },
         { title: $clientQuery.data.first_name + ' ' + $clientQuery.data.last_name, href: `/clients/${clientId}` },
@@ -26,7 +26,7 @@
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Clients', href: '/clients' },
         { title: 'Edit Client', href: `/clients/${clientId}/edit` },
-    ] as BreadcrumbItem[];
+    ] as BreadcrumbItem[]);
 
     function handleDelete() {
         if (!$clientQuery.data) return;

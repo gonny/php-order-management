@@ -55,7 +55,7 @@
         }
     }
 
-    $: isSubmitting = form.processing;
+    let isSubmitting = $derived(form.processing);
 </script>
 
 <form onsubmit={handleSubmit} class="space-y-6">

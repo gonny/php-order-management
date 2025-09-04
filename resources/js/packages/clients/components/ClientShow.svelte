@@ -31,7 +31,7 @@
     // Get client data
     let clientQuery = $derived(useClient(clientId));
 
-    $: breadcrumbs = $clientQuery.data ? [
+    let breadcrumbs = $derived($clientQuery.data ? [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Clients', href: '/clients' },
         { title: $clientQuery.data.first_name + ' ' + $clientQuery.data.last_name, href: `/clients/${clientId}` },
@@ -39,7 +39,7 @@
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Clients', href: '/clients' },
         { title: 'Client Details', href: `/clients/${clientId}` },
-    ] as BreadcrumbItem[];
+    ] as BreadcrumbItem[]);
 
     function formatDate(dateString: string) {
         return new Date(dateString).toLocaleDateString();
@@ -285,7 +285,7 @@
                                                         </Table.Cell>
                                                         <Table.Cell>{formatDate(order.created_at)}</Table.Cell>
                                                         <Table.Cell>
-                                                            <Badge class="{getOrderStatusColor(order.status)}">
+                                                            <Badge class={getOrderStatusColor(order.status)}>
                                                                 {order.status}
                                                             </Badge>
                                                         </Table.Cell>
