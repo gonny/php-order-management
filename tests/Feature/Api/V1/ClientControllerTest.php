@@ -223,7 +223,7 @@ class ClientControllerTest extends TestCase
                     'orders' => [
                         '*' => [
                             'id',
-                            'order_number',
+                            'number',
                             'status',
                             'total_amount',
                         ]
