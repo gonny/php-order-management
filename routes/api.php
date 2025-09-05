@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\ClientController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\QueueController;
 use App\Http\Controllers\Api\V1\WebhookController;
 use App\Http\Middleware\HmacAuthenticationMiddleware;
 use App\Http\Middleware\RateLimitApiMiddleware;
@@ -22,20 +24,31 @@ Route::prefix("v1")->middleware([
         ]);
     });
     
+    // Dashboard metrics endpoint
+    Route::get("dashboard/metrics", [DashboardController::class, "metrics"]);
+    
     // Order management endpoints
     Route::apiResource("orders", OrderController::class);
-    Route::post("orders/{order}/transition", [OrderController::class, "transition"]);
+    Route::post("orders/{order}/transitions/{transition}", [OrderController::class, "transition"]);
     Route::post("orders/{order}/label", [OrderController::class, "generateLabel"]);
     Route::post("orders/{order}/label/dpd", [OrderController::class, "generateDpdLabel"]);
     Route::delete("orders/{order}/shipment/dpd", [OrderController::class, "deleteDpdShipment"]);
     Route::post("orders/{order}/tracking/refresh", [OrderController::class, "refreshDpdTracking"]);
     Route::post("orders/{order}/pdf", [OrderController::class, "generatePdf"])->middleware(RateLimitApiMiddleware::class . ":10");
     
-    // Client management endpoints
-    Route::apiResource("clients", ClientController::class)->only(["store", "show"]);
+    // Client management endpoints (now with full CRUD)
+    Route::apiResource("clients", ClientController::class);
     
-    // Label management
-    Route::post("labels/{label}/void", [OrderController::class, "voidLabel"]);
+    // Label management (fixed route pattern)
+    Route::delete("labels/{label}", [OrderController::class, "voidLabel"]);
+    
+    // Queue management endpoints
+    Route::get("queues/stats", [QueueController::class, "stats"]);
+    Route::get("queues/failed", [QueueController::class, "failedJobs"]);
+    Route::get("queues/recent", [QueueController::class, "recentJobs"]);
+    Route::post("queues/failed/{jobId}/retry", [QueueController::class, "retryJob"]);
+    Route::delete("queues/failed/{jobId}", [QueueController::class, "deleteFailedJob"]);
+    Route::delete("queues/failed", [QueueController::class, "clearFailedJobs"]);
     
     // Webhook endpoints
     Route::post("webhooks/incoming/{source}", [WebhookController::class, "receive"]);

@@ -19,10 +19,12 @@ class Client extends Model
         'last_name',
         'company',
         'vat_id',
+        'is_active',
         'meta',
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
         'meta' => 'array',
     ];
 

@@ -22,7 +22,7 @@ class ApiClientFactory extends Factory
         
         return [
             'key_id' => 'client_' . Str::random(10),
-            'secret_hash' => bcrypt($secret), // Store secret hash for authentication
+            'secret_hash' => $secret, // Store raw secret for HMAC verification
             'name' => $this->faker->company(),
             'ip_allowlist' => ['127.0.0.1', '::1'], // Store as array, will be cast to JSON
             'active' => true,
@@ -30,7 +30,6 @@ class ApiClientFactory extends Factory
             'meta' => [
                 'created_by' => 'factory',
                 'environment' => 'testing',
-                'secret' => $secret, // Store plain secret in meta for testing
             ],
         ];
     }
