@@ -130,4 +130,26 @@ class AuditLogger
             $actorId
         );
     }
+
+    /**
+     * Log an audit event - generic event logging method
+     */
+    public function logAuditEvent(
+        string $entityType,
+        string $entityId,
+        string $action,
+        ?string $actorType = 'api',
+        ?string $actorId = null,
+        ?array $metadata = null
+    ): AuditLog {
+        return $this->logModelChange(
+            $entityType,
+            $entityId,
+            $action,
+            [],
+            $metadata ? ['metadata' => $metadata] : [],
+            $actorType,
+            $actorId
+        );
+    }
 }
