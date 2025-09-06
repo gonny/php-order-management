@@ -470,7 +470,7 @@
                         {#if selectedWebhook}
                             {@const StatusIcon = getStatusIcon(selectedWebhook.status)}
                             <p class="text-sm text-muted-foreground mt-1">
-                                <Badge class={getStatusVariant(selectedWebhook.status)} class="inline-flex items-center gap-1">
+                                <Badge class={`${getStatusVariant(selectedWebhook.status)} inline-flex items-center gap-1`}>
                                     <StatusIcon class="h-3 w-3" />
                                     {selectedWebhook.status}
                                 </Badge>
