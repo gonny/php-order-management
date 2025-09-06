@@ -44,13 +44,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/queues/failed', [QueueWebController::class, 'failed'])->name('queues.failed');
 });
 
-// API routes for Inertia components (session-authenticated)
-Route::middleware(['auth', 'verified'])->prefix('inertia-api')->group(function () {
-    Route::get('/dashboard/metrics', [App\Http\Controllers\InertiaApiController::class, 'dashboardMetrics'])->name('inertia-api.dashboard.metrics');
-    Route::get('/orders', [App\Http\Controllers\InertiaApiController::class, 'orders'])->name('inertia-api.orders.index');
-    Route::get('/orders/{order}', [App\Http\Controllers\InertiaApiController::class, 'order'])->name('inertia-api.orders.show');
-    Route::get('/clients', [App\Http\Controllers\InertiaApiController::class, 'clients'])->name('inertia-api.clients.index');
-    Route::get('/clients/{client}', [App\Http\Controllers\InertiaApiController::class, 'client'])->name('inertia-api.clients.show');
+// Webhooks Management Web Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/webhooks', function () {
+        return Inertia::render('webhooks/Index');
+    })->name('webhooks.index');
 });
 
 require __DIR__.'/settings.php';

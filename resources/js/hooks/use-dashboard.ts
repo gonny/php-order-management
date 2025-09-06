@@ -1,5 +1,5 @@
 import { createQuery } from '@tanstack/svelte-query';
-import { inertiaApiClient } from '@/lib/inertia-api';
+import { spaApiClient } from '@/lib/spa-api';
 
 // Query keys
 export const dashboardKeys = {
@@ -11,7 +11,7 @@ export const dashboardKeys = {
 export function useDashboardMetrics() {
   return createQuery({
     queryKey: dashboardKeys.metrics(),
-    queryFn: () => inertiaApiClient.getDashboardMetrics(),
+    queryFn: () => spaApiClient.getDashboardMetrics(),
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchInterval: 1000 * 60 * 5, // Refetch every 5 minutes
   });
