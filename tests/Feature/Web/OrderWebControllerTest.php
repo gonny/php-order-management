@@ -176,7 +176,9 @@ class OrderWebControllerTest extends TestCase
         $response->assertInertia(function ($page) {
             $page->has('orders.data', 15) // Should have 15 items
                  ->has('orders.links') // Should have pagination links
-                 ->has('orders.meta'); // Should have pagination meta
+                 ->has('orders.current_page') // Alternative pagination meta
+                 ->has('orders.per_page')
+                 ->has('orders.total');
         });
     }
 
