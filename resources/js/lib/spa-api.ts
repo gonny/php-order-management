@@ -29,19 +29,6 @@ interface User {
   email: string;
 }
 
-interface LoginRequest {
-  email: string;
-  password: string;
-  remember?: boolean;
-}
-
-interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-}
-
 // SPA API Configuration
 interface SpaApiConfig {
   baseUrl: string;
@@ -51,17 +38,14 @@ interface SpaApiConfig {
 /**
  * Sanctum-based API Client for SPA (Single Page Application)
  * 
- * This client uses Laravel Sanctum for session-based authentication with CSRF protection.
- * It's designed for trusted same-server frontend communication and provides:
- * - Session-based authentication
- * - CSRF protection
- * - Simple, maintainable implementation
- * - High performance for SPA scenarios
+ * This client uses Laravel Sanctum for stateful session-based authentication.
+ * It leverages the existing Laravel session authentication - no separate login needed.
+ * Users authenticate via standard Laravel auth (/login), then this client automatically
+ * works with the existing session via Sanctum's stateful authentication.
  */
 export class SpaApiClient {
   private baseUrl: string;
   private timeout: number;
-  private csrfToken: string | null = null;
 
   constructor(config: SpaApiConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, ''); // Remove trailing slash
@@ -69,16 +53,11 @@ export class SpaApiClient {
   }
 
   /**
-   * Initialize CSRF protection by getting the CSRF cookie
+   * Get CSRF token from meta tag
    */
-  async initCsrf(): Promise<void> {
-    await this.request('GET', '/spa/v1/auth/csrf-cookie');
-    
-    // Get CSRF token from meta tag or cookie
+  private getCsrfToken(): string | null {
     const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (metaToken) {
-      this.csrfToken = metaToken;
-    }
+    return metaToken || null;
   }
 
   /**
@@ -99,16 +78,10 @@ export class SpaApiClient {
       'X-Requested-With': 'XMLHttpRequest', // Important for Laravel to recognize as AJAX
     };
 
-    // Add CSRF token if available
-    if (this.csrfToken) {
-      headers['X-CSRF-TOKEN'] = this.csrfToken;
-    } else {
-      // Fallback: get CSRF token from meta tag
-      const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      if (metaToken) {
-        headers['X-CSRF-TOKEN'] = metaToken;
-        this.csrfToken = metaToken;
-      }
+    // Add CSRF token from meta tag
+    const csrfToken = this.getCsrfToken();
+    if (csrfToken) {
+      headers['X-CSRF-TOKEN'] = csrfToken;
     }
 
     const controller = new AbortController();
@@ -158,46 +131,10 @@ export class SpaApiClient {
     }
   }
 
-  // Authentication methods
+  // User info methods
 
   /**
-   * Login user with email and password
-   */
-  async login(credentials: LoginRequest): Promise<User> {
-    await this.initCsrf(); // Ensure CSRF token is available
-    
-    const response = await this.request<{ user: User; message: string }>(
-      'POST',
-      '/spa/v1/auth/login',
-      credentials
-    );
-    return response.user;
-  }
-
-  /**
-   * Register a new user
-   */
-  async register(userData: RegisterRequest): Promise<User> {
-    await this.initCsrf(); // Ensure CSRF token is available
-    
-    const response = await this.request<{ user: User; message: string }>(
-      'POST',
-      '/spa/v1/auth/register',
-      userData
-    );
-    return response.user;
-  }
-
-  /**
-   * Logout current user
-   */
-  async logout(): Promise<void> {
-    await this.request<void>('POST', '/spa/v1/auth/logout');
-    this.csrfToken = null; // Clear cached token
-  }
-
-  /**
-   * Get current authenticated user
+   * Get current authenticated user (uses existing session)
    */
   async getUser(): Promise<User> {
     const response = await this.request<{ user: User }>(

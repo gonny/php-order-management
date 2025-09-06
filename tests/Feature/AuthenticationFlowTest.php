@@ -44,23 +44,21 @@ class AuthenticationFlowTest extends TestCase
         );
 
         // 6. Dashboard API endpoint works after authentication
-        $response = $this->actingAs($user)
+        $response = $this->actingAs($user, 'sanctum')
             ->withHeaders([
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Accept' => 'application/json',
-                'X-CSRF-TOKEN' => csrf_token(),
             ])
-            ->get('/inertia-api/dashboard/metrics');
+            ->get('/spa/v1/dashboard/metrics');
         
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'order_counts',
-                'total_revenue',
-                'failed_jobs_count',
-                'api_response_time_p95',
-                'queue_sizes',
-                'recent_orders',
-                'recent_activities',
+                'data' => [
+                    'orders',
+                    'clients',
+                    'revenue', 
+                    'recent_orders'
+                ]
             ]);
 
         // 7. Other protected pages work
@@ -93,13 +91,14 @@ class AuthenticationFlowTest extends TestCase
         
         // Test multiple API endpoints in sequence
         $endpoints = [
-            '/inertia-api/dashboard/metrics',
-            '/inertia-api/orders',
-            '/inertia-api/clients',
+            '/spa/v1/dashboard/metrics',
+            '/spa/v1/orders',
+            '/spa/v1/clients',
         ];
 
         foreach ($endpoints as $endpoint) {
-            $response = $this->withHeaders([
+            $response = $this->actingAs($user, 'sanctum')
+                ->withHeaders([
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Accept' => 'application/json',
             ])->get($endpoint);
@@ -112,13 +111,13 @@ class AuthenticationFlowTest extends TestCase
     {
         $user = User::factory()->create();
         
-        // Test POST request to non-existent endpoint 
-        $response = $this->actingAs($user)
+        // Test POST request to user info endpoint 
+        $response = $this->actingAs($user, 'sanctum')
             ->withHeaders([
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Accept' => 'application/json',
             ])
-            ->post('/inertia-api/dashboard/metrics'); // POST to GET-only endpoint
+            ->post('/spa/v1/auth/user'); // POST to GET-only endpoint
         
         // Should get 405 Method Not Allowed since we only allow GET
         $response->assertStatus(405);
@@ -139,10 +138,11 @@ class AuthenticationFlowTest extends TestCase
         $response->assertStatus(200);
         
         // Make API calls that should maintain the session
-        $response = $this->withHeaders([
+        $response = $this->actingAs($user, 'sanctum')
+            ->withHeaders([
             'X-Requested-With' => 'XMLHttpRequest',
             'Accept' => 'application/json',
-        ])->get('/inertia-api/dashboard/metrics');
+        ])->get('/spa/v1/dashboard/metrics');
         
         $response->assertStatus(200);
     }

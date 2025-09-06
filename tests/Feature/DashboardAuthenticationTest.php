@@ -33,22 +33,22 @@ class DashboardAuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
         
-        $response = $this->actingAs($user)
+        $response = $this->actingAs($user, 'sanctum')
             ->withHeaders([
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Accept' => 'application/json',
             ])
-            ->get('/inertia-api/dashboard/metrics');
+            ->get('/spa/v1/dashboard/metrics');
         
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'order_counts',
-                'total_revenue',
-                'failed_jobs_count',
-                'api_response_time_p95',
-                'queue_sizes',
-                'recent_orders',
-                'recent_activities',
+                'data' => [
+                    'orders',
+                    'clients', 
+                    'revenue',
+                    'recent_orders',
+                ],
+                'message'
             ]);
     }
 
@@ -95,16 +95,15 @@ class DashboardAuthenticationTest extends TestCase
         // First, get the page to establish session
         $this->actingAs($user)->get('/dashboard');
         
-        // Now make an API request without CSRF token (should fail if CSRF is enforced)
-        $response = $this->actingAs($user)
+        // Now make an API request using Sanctum authentication
+        $response = $this->actingAs($user, 'sanctum')
             ->withHeaders([
                 'X-Requested-With' => 'XMLHttpRequest',
                 'Accept' => 'application/json',
             ])
-            ->withoutToken() // Remove CSRF token
-            ->get('/inertia-api/dashboard/metrics');
+            ->get('/spa/v1/dashboard/metrics');
         
-        // Should still work for GET requests, but POST/PUT/DELETE would need CSRF
+        // Should work for GET requests with Sanctum session auth
         $response->assertStatus(200);
     }
 }
