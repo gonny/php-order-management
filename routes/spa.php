@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 // All SPA routes require authentication via existing session
 Route::middleware('auth:sanctum')->group(function () {
     // Dashboard
-    Route::get('/dashboard/metrics', [DashboardController::class, 'metrics']);
+    Route::get('/dashboard/metrics', [DashboardController::class, 'metrics'])->name('spa.dashboard.metrics');
     
     // Orders
     Route::apiResource('orders', OrderController::class)->names([
