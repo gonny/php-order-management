@@ -1,29 +1,47 @@
-<script>
-import { Head } from "@inertiajs/svelte";
+<script lang="ts">
+    import AppLayout from '@/layouts/AppLayout.svelte';
+    import type { BreadcrumbItem } from '@/types';
+    import * as Card from '@/components/ui/card';
+    import { AlertTriangle } from 'lucide-svelte';
 
-let { failed_jobs = [] } = $props();
+    let { failed_jobs = [] } = $props();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: route('dashboard') },
+        { title: 'Queues', href: route('queues.index') },
+        { title: 'Failed Jobs' }
+    ];
 </script>
 
-<Head>
-    <title>Failed Jobs</title>
-</Head>
-
-<div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">Failed Jobs</h1>
-    
-    {#if failed_jobs.length === 0}
-        <p class="text-gray-500">No failed jobs found.</p>
-    {:else}
-        <div class="grid gap-4">
-            {#each failed_jobs as job}
-                <div class="border rounded-lg p-4">
-                    <h3 class="font-semibold">{job.name || 'Unknown Job'}</h3>
-                    <p class="text-sm text-gray-600">Failed at: {job.failed_at}</p>
-                    {#if job.exception}
-                        <pre class="mt-2 text-xs bg-red-50 p-2 rounded overflow-x-auto">{job.exception}</pre>
-                    {/if}
-                </div>
-            {/each}
+<AppLayout {breadcrumbs}>
+    <div class="container mx-auto space-y-6">
+        <div class="flex items-center gap-2">
+            <AlertTriangle class="h-6 w-6 text-red-500" />
+            <h1 class="text-2xl font-bold">Failed Jobs</h1>
         </div>
-    {/if}
-</div>
+        
+        {#if failed_jobs.length === 0}
+            <Card.Root>
+                <Card.Content class="p-6">
+                    <p class="text-muted-foreground text-center">No failed jobs found.</p>
+                </Card.Content>
+            </Card.Root>
+        {:else}
+            <div class="grid gap-4">
+                {#each failed_jobs as job}
+                    <Card.Root>
+                        <Card.Header>
+                            <Card.Title class="text-lg">{job.name || 'Unknown Job'}</Card.Title>
+                            <Card.Description>Failed at: {job.failed_at}</Card.Description>
+                        </Card.Header>
+                        {#if job.exception}
+                            <Card.Content>
+                                <pre class="text-xs bg-destructive/10 p-3 rounded-md overflow-x-auto">{job.exception}</pre>
+                            </Card.Content>
+                        {/if}
+                    </Card.Root>
+                {/each}
+            </div>
+        {/if}
+    </div>
+</AppLayout>
