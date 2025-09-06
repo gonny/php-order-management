@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'default' => env('SHIPPING_DEFAULT_CARRIER', 'balikovna'),
+    'default' => env('SHIPPING_DEFAULT_CARRIER', 'dpd'),
 
     /*
     |--------------------------------------------------------------------------
