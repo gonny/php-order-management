@@ -73,10 +73,12 @@ class DpdLabelApiTest extends TestCase
     {
         Queue::fake();
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_Home',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_Home',
+        ];
+        
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(202)
             ->assertJsonStructure([
@@ -260,19 +262,28 @@ class DpdLabelApiTest extends TestCase
     /**
      * Helper method to add HMAC authentication headers
      */
-    private function withHmacAuth()
+    private function withHmacAuth(string $method = 'POST', string $path = '', array $body = [])
     {
-        $timestamp = now()->timestamp;
-        $body = '';
-        $path = '';
+        $timestamp = time();
+        $bodyJson = json_encode($body);
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', $bodyJson, true));
         
-        // Simple HMAC for testing - in real implementation this would be more complex
-        $signature = hash_hmac('sha256', "GET{$path}{$body}{$timestamp}", 'test-secret');
+        // Create string to sign in correct format matching backend
+        $stringToSign = implode("\n", [
+            $method,
+            $path,
+            $timestamp,
+            $digest
+        ]);
         
+        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $this->apiClient->secret_hash, true));
+
         return $this->withHeaders([
-            'X-API-Key' => $this->apiClient->key_id,
-            'X-Timestamp' => $timestamp,
+            'X-Key-Id' => $this->apiClient->key_id,
             'X-Signature' => $signature,
+            'X-Timestamp' => $timestamp,
+            'Digest' => $digest,
+            'Content-Type' => 'application/json',
         ]);
     }
 }

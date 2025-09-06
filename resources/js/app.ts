@@ -2,6 +2,7 @@ import { createInertiaApp, type ResolvedComponent } from '@inertiajs/svelte';
 import { QueryClient } from '@tanstack/svelte-query';
 import { hydrate, mount } from 'svelte';
 import AppWithQueryClient from './components/AppWithQueryClient.svelte';
+import { initializeSpaApi } from './lib/spa-api';
 import '../css/app.css';
 import './bootstrap';
 
@@ -23,6 +24,9 @@ const queryClient = new QueryClient({
         },
     },
 });
+
+// Initialize CSRF protection for SPA authentication
+initializeSpaApi();
 
 createInertiaApp({
     resolve: (name: string) => {

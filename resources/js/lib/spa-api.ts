@@ -46,10 +46,23 @@ interface SpaApiConfig {
 export class SpaApiClient {
   private baseUrl: string;
   private timeout: number;
+  private csrfInitialized = false;
 
   constructor(config: SpaApiConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, ''); // Remove trailing slash
     this.timeout = config.timeout || 30000;
+  }
+
+  /**
+   * Initialize CSRF protection by fetching CSRF cookie from Sanctum
+   * This should be called when the app starts for proper session authentication
+   */
+  async initializeCsrf(): Promise<void> {
+    const url = `${this.baseUrl}/sanctum/csrf-cookie`;
+    await fetch(url, {
+      method: 'GET',
+      credentials: 'include', // Important to include session cookies
+    });
   }
 
   /**
@@ -69,6 +82,12 @@ export class SpaApiClient {
     data?: any,
     options: RequestInit = {}
   ): Promise<T> {
+    // Initialize CSRF on first request if not already done
+    if (!this.csrfInitialized) {
+      await this.initializeCsrf();
+      this.csrfInitialized = true;
+    }
+
     const url = `${this.baseUrl}${endpoint}`;
     const body = data ? JSON.stringify(data) : undefined;
     
@@ -315,6 +334,12 @@ export const spaApiClient = new SpaApiClient({
   baseUrl: window.location.origin,
   timeout: 30000,
 });
+
+// Helper function to initialize the SPA API client
+// Call this when your app starts to ensure CSRF protection is set up
+export async function initializeSpaApi(): Promise<void> {
+  await spaApiClient.initializeCsrf();
+}
 
 // Helper function to handle SPA API errors
 export function handleSpaApiError(error: unknown): string {
