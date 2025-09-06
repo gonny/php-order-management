@@ -1,11 +1,14 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/lib/api';
+import { inertiaApiClient, handleInertiaApiError } from '@/lib/inertia-api';
 import type {
   Client,
   ClientCreateDTO,
   ClientFilters,
   ClientUpdateDTO,
 } from '@/types';
+
+// For mutations, we'll use the original API client with HMAC auth
+import { apiClient, handleApiError } from '@/lib/api';
 
 // Query keys
 export const clientKeys = {
@@ -16,11 +19,11 @@ export const clientKeys = {
   detail: (id: string) => [...clientKeys.details(), id] as const,
 };
 
-// Queries
+// Queries (using session-authenticated API)
 export function useClients(filters: ClientFilters = {}) {
   return createQuery({
     queryKey: clientKeys.list(filters),
-    queryFn: () => apiClient.getClients(filters),
+    queryFn: () => inertiaApiClient.getClients(filters),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -28,7 +31,7 @@ export function useClients(filters: ClientFilters = {}) {
 export function useClient(id: string) {
   return createQuery({
     queryKey: clientKeys.detail(id),
-    queryFn: () => apiClient.getClient(id),
+    queryFn: () => inertiaApiClient.getClient(id),
     enabled: !!id,
     staleTime: 1000 * 60 * 2, // 2 minutes
   });

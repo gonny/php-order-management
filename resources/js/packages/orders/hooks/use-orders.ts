@@ -1,5 +1,5 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/packages/shared/lib/api';
+import { inertiaApiClient, handleInertiaApiError } from '@/lib/inertia-api';
 import type {
   Order,
   OrderCreateDTO,
@@ -7,6 +7,9 @@ import type {
   OrderTransition,
 } from '../types/order';
 import type { OrderFilters } from '../types/filters';
+
+// For mutations, we'll use the shared API client with HMAC auth
+import { apiClient, handleApiError } from '@/packages/shared/lib/api';
 
 // Query keys
 export const orderKeys = {
@@ -17,11 +20,11 @@ export const orderKeys = {
   detail: (id: string) => [...orderKeys.details(), id] as const,
 };
 
-// Queries
+// Queries (using session-authenticated API)
 export function useOrders(filters: OrderFilters = {}) {
   return createQuery({
     queryKey: orderKeys.list(filters),
-    queryFn: () => apiClient.getOrders(filters),
+    queryFn: () => inertiaApiClient.getOrders(filters),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -29,7 +32,7 @@ export function useOrders(filters: OrderFilters = {}) {
 export function useOrder(id: string) {
   return createQuery({
     queryKey: orderKeys.detail(id),
-    queryFn: () => apiClient.getOrder(id),
+    queryFn: () => inertiaApiClient.getOrder(id),
     enabled: !!id,
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
