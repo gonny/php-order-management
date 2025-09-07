@@ -73,7 +73,7 @@ class ProcessWebhook implements ShouldQueue
 
     private function handleBalikovnaWebhook(): void
     {
-        $payload = $this->webhook->payload;
+        $payload = (array)$this->webhook->payload;
         $orderId = $payload['order_id'] ?? null;
 
         if (!$orderId) {
