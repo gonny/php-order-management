@@ -153,7 +153,7 @@ class ProcessOrderStateChange implements ShouldQueue
     {
         // Void any shipping labels if they exist
         $this->order->shippingLabels()
-            ->where('status', 'created')
+            ->where('status', 'generated')
             ->update(['status' => 'voided']);
 
         Log::info('Shipping labels voided for cancelled order', [

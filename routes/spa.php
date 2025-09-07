@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Spa\AuditLogController;
 use App\Http\Controllers\Spa\ClientController;
 use App\Http\Controllers\Spa\DashboardController;
 use App\Http\Controllers\Spa\OrderController;
@@ -48,6 +49,11 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Label management
     Route::delete('labels/{label}', [OrderController::class, 'voidLabel'])->name('spa.labels.void');
+    
+    // Audit Logs
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('spa.audit-logs.index');
+    Route::get('/audit-logs/stats', [AuditLogController::class, 'stats'])->name('spa.audit-logs.stats');
+    Route::get('/orders/{order}/audit-logs', [AuditLogController::class, 'orderAuditLogs'])->name('spa.orders.audit-logs');
     
     // User info endpoint for frontend
     Route::get('/auth/user', function () {
