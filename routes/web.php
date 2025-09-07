@@ -44,5 +44,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/queues/failed', [QueueWebController::class, 'failed'])->name('queues.failed');
 });
 
+// Audit Logs Web Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/audit-logs', function () {
+        return Inertia::render('audit-logs/Index');
+    })->name('audit-logs.index');
+});
+
+// Webhooks Management Web Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/webhooks', function () {
+        return Inertia::render('webhooks/Index');
+    })->name('webhooks.index');
+});
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

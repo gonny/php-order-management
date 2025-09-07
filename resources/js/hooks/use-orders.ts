@@ -1,12 +1,12 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/lib/api';
+import { spaApiClient, handleSpaApiError } from '@/lib/spa-api';
 import type {
   Order,
-  OrderCreateDTO,
   OrderFilters,
+  OrderCreateDTO,
   OrderTransition,
   OrderUpdateDTO,
-} from '@/types';
+} from '@/packages/orders/types/order';
 
 // Query keys
 export const orderKeys = {
@@ -17,11 +17,11 @@ export const orderKeys = {
   detail: (id: string) => [...orderKeys.details(), id] as const,
 };
 
-// Queries
+// Queries (using Sanctum-authenticated SPA API)
 export function useOrders(filters: OrderFilters = {}) {
   return createQuery({
     queryKey: orderKeys.list(filters),
-    queryFn: () => apiClient.getOrders(filters),
+    queryFn: () => spaApiClient.getOrders(filters),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -29,18 +29,18 @@ export function useOrders(filters: OrderFilters = {}) {
 export function useOrder(id: string) {
   return createQuery({
     queryKey: orderKeys.detail(id),
-    queryFn: () => apiClient.getOrder(id),
+    queryFn: () => spaApiClient.getOrder(id),
     enabled: !!id,
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
 
-// Mutations
+// Mutations (using Sanctum-authenticated SPA API for all operations)
 export function useCreateOrder() {
   const queryClient = useQueryClient();
   
   return createMutation({
-    mutationFn: (data: OrderCreateDTO) => apiClient.createOrder(data),
+    mutationFn: (data: OrderCreateDTO) => spaApiClient.createOrder(data),
     onSuccess: (newOrder) => {
       // Invalidate orders list
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
@@ -48,7 +48,7 @@ export function useCreateOrder() {
       queryClient.setQueryData(orderKeys.detail(newOrder.id), newOrder);
     },
     onError: (error) => {
-      console.error('Failed to create order:', handleApiError(error));
+      console.error('Failed to create order:', handleSpaApiError(error));
     },
   });
 }
@@ -58,7 +58,7 @@ export function useUpdateOrder() {
   
   return createMutation({
     mutationFn: ({ id, data }: { id: string; data: OrderUpdateDTO }) =>
-      apiClient.updateOrder(id, data),
+      spaApiClient.updateOrder(id, data),
     onMutate: async ({ id, data }) => {
       // Cancel outgoing queries
       await queryClient.cancelQueries({ queryKey: orderKeys.detail(id) });
@@ -82,7 +82,7 @@ export function useUpdateOrder() {
       if (context?.previousOrder) {
         queryClient.setQueryData(orderKeys.detail(id), context.previousOrder);
       }
-      console.error('Failed to update order:', handleApiError(error));
+      console.error('Failed to update order:', handleSpaApiError(error));
     },
     onSettled: (data, error, { id }) => {
       // Refetch to ensure consistency
@@ -96,7 +96,7 @@ export function useDeleteOrder() {
   const queryClient = useQueryClient();
   
   return createMutation({
-    mutationFn: (id: string) => apiClient.deleteOrder(id),
+    mutationFn: (id: string) => spaApiClient.deleteOrder(id),
     onSuccess: (_, id) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: orderKeys.detail(id) });
@@ -104,7 +104,7 @@ export function useDeleteOrder() {
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
     },
     onError: (error) => {
-      console.error('Failed to delete order:', handleApiError(error));
+      console.error('Failed to delete order:', handleSpaApiError(error));
     },
   });
 }
@@ -114,7 +114,7 @@ export function useTransitionOrder() {
   
   return createMutation({
     mutationFn: ({ id, transition }: { id: string; transition: OrderTransition }) =>
-      apiClient.transitionOrder(id, transition),
+      spaApiClient.transitionOrder(id, transition),
     onMutate: async ({ id, transition }) => {
       // Cancel outgoing queries
       await queryClient.cancelQueries({ queryKey: orderKeys.detail(id) });
@@ -149,7 +149,7 @@ export function useTransitionOrder() {
       if (context?.previousOrder) {
         queryClient.setQueryData(orderKeys.detail(id), context.previousOrder);
       }
-      console.error('Failed to transition order:', handleApiError(error));
+      console.error('Failed to transition order:', handleSpaApiError(error));
     },
     onSettled: (data, error, { id }) => {
       // Refetch to ensure consistency

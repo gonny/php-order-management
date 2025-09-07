@@ -1,5 +1,5 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/lib/api';
+import { spaApiClient, handleSpaApiError } from '@/lib/spa-api';
 import type {
   Client,
   ClientCreateDTO,
@@ -16,11 +16,11 @@ export const clientKeys = {
   detail: (id: string) => [...clientKeys.details(), id] as const,
 };
 
-// Queries
+// Queries (using Sanctum-authenticated SPA API)
 export function useClients(filters: ClientFilters = {}) {
   return createQuery({
     queryKey: clientKeys.list(filters),
-    queryFn: () => apiClient.getClients(filters),
+    queryFn: () => spaApiClient.getClients(filters),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
@@ -28,18 +28,18 @@ export function useClients(filters: ClientFilters = {}) {
 export function useClient(id: string) {
   return createQuery({
     queryKey: clientKeys.detail(id),
-    queryFn: () => apiClient.getClient(id),
+    queryFn: () => spaApiClient.getClient(id),
     enabled: !!id,
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
 
-// Mutations
+// Mutations (using Sanctum-authenticated SPA API for all operations)
 export function useCreateClient() {
   const queryClient = useQueryClient();
   
   return createMutation({
-    mutationFn: (data: ClientCreateDTO) => apiClient.createClient(data),
+    mutationFn: (data: ClientCreateDTO) => spaApiClient.createClient(data),
     onSuccess: (newClient) => {
       // Invalidate clients list
       queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
@@ -47,7 +47,7 @@ export function useCreateClient() {
       queryClient.setQueryData(clientKeys.detail(newClient.id), newClient);
     },
     onError: (error) => {
-      console.error('Failed to create client:', handleApiError(error));
+      console.error('Failed to create client:', handleSpaApiError(error));
     },
   });
 }
@@ -57,7 +57,7 @@ export function useUpdateClient() {
   
   return createMutation({
     mutationFn: ({ id, data }: { id: string; data: ClientUpdateDTO }) =>
-      apiClient.updateClient(id, data),
+      spaApiClient.updateClient(id, data),
     onMutate: async ({ id, data }) => {
       // Cancel outgoing queries
       await queryClient.cancelQueries({ queryKey: clientKeys.detail(id) });
@@ -81,7 +81,7 @@ export function useUpdateClient() {
       if (context?.previousClient) {
         queryClient.setQueryData(clientKeys.detail(id), context.previousClient);
       }
-      console.error('Failed to update client:', handleApiError(error));
+      console.error('Failed to update client:', handleSpaApiError(error));
     },
     onSettled: (data, error, { id }) => {
       // Refetch to ensure consistency
@@ -95,7 +95,7 @@ export function useDeleteClient() {
   const queryClient = useQueryClient();
   
   return createMutation({
-    mutationFn: (id: string) => apiClient.deleteClient(id),
+    mutationFn: (id: string) => spaApiClient.deleteClient(id),
     onSuccess: (_, id) => {
       // Remove from cache
       queryClient.removeQueries({ queryKey: clientKeys.detail(id) });
@@ -103,7 +103,7 @@ export function useDeleteClient() {
       queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
     },
     onError: (error) => {
-      console.error('Failed to delete client:', handleApiError(error));
+      console.error('Failed to delete client:', handleSpaApiError(error));
     },
   });
 }

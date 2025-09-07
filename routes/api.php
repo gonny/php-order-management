@@ -51,6 +51,7 @@ Route::prefix("v1")->middleware([
     Route::delete("queues/failed", [QueueController::class, "clearFailedJobs"]);
     
     // Webhook endpoints
+    Route::get("webhooks", [WebhookController::class, "index"]);
     Route::post("webhooks/incoming/{source}", [WebhookController::class, "receive"]);
 });
 

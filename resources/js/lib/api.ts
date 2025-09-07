@@ -41,9 +41,10 @@ class HMACAuth {
     method: string,
     path: string,
     timestamp: number,
-    body: string
+    digest: string
   ): Promise<string> {
-    const stringToSign = method + path + timestamp + body;
+    // Match backend format: method\npath\ntimestamp\ndigest
+    const stringToSign = [method, path, timestamp.toString(), digest].join('\n');
     const encoder = new TextEncoder();
     const keyData = encoder.encode(this.secret);
     const messageData = encoder.encode(stringToSign);
@@ -67,13 +68,14 @@ class HMACAuth {
   ): Promise<Record<string, string>> {
     const timestamp = Math.floor(Date.now() / 1000);
     const bodyHash = await this.generateBodyHash(body);
-    const signature = await this.generateSignature(method, path, timestamp, body);
+    const digest = `SHA-256=${bodyHash}`;
+    const signature = await this.generateSignature(method, path, timestamp, digest);
 
     return {
       'X-Key-Id': this.keyId,
       'X-Signature': signature,
       'X-Timestamp': timestamp.toString(),
-      'Digest': `SHA-256=${bodyHash}`,
+      'Digest': digest,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };

@@ -73,10 +73,12 @@ class DpdLabelApiTest extends TestCase
     {
         Queue::fake();
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_Home',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_Home',
+        ];
+        
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(202)
             ->assertJsonStructure([
@@ -106,11 +108,13 @@ class DpdLabelApiTest extends TestCase
     {
         Queue::fake();
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_PickupPoint',
-                'pickup_point_id' => 'PP123456',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_PickupPoint',
+            'pickup_point_id' => 'PP123456',
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(202)
             ->assertJsonStructure([
@@ -134,11 +138,13 @@ class DpdLabelApiTest extends TestCase
 
     public function test_validates_required_pickup_point_id_for_pickup_delivery()
     {
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_PickupPoint',
-                // Missing pickup_point_id
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_PickupPoint',
+            // Missing pickup_point_id
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['pickup_point_id']);
@@ -146,10 +152,12 @@ class DpdLabelApiTest extends TestCase
 
     public function test_validates_shipping_method()
     {
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'Invalid_Method',
-            ]);
+        $payload = [
+            'shipping_method' => 'Invalid_Method',
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['shipping_method']);
@@ -159,10 +167,12 @@ class DpdLabelApiTest extends TestCase
     {
         $this->order->update(['status' => Order::STATUS_NEW]);
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_Home',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_Home',
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -175,10 +185,12 @@ class DpdLabelApiTest extends TestCase
     {
         $this->order->update(['shipping_address_id' => null]);
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_Home',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_Home',
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -191,10 +203,12 @@ class DpdLabelApiTest extends TestCase
     {
         $this->order->shippingAddress->update(['country_code' => 'DE']);
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_Home',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_Home',
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -207,10 +221,12 @@ class DpdLabelApiTest extends TestCase
     {
         $this->order->update(['dpd_shipment_id' => 'EXISTING123']);
 
-        $response = $this->withHmacAuth()
-            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", [
-                'shipping_method' => 'DPD_Home',
-            ]);
+        $payload = [
+            'shipping_method' => 'DPD_Home',
+        ];
+
+        $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
+            ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -225,7 +241,7 @@ class DpdLabelApiTest extends TestCase
         
         $this->order->update(['dpd_shipment_id' => 'SHIP123456']);
 
-        $response = $this->withHmacAuth()
+        $response = $this->withHmacAuth('DELETE', "/api/v1/orders/{$this->order->id}/shipment/dpd", [])
             ->deleteJson("/api/v1/orders/{$this->order->id}/shipment/dpd");
 
         $response->assertStatus(202)
@@ -247,7 +263,7 @@ class DpdLabelApiTest extends TestCase
 
     public function test_rejects_delete_when_no_shipment_exists()
     {
-        $response = $this->withHmacAuth()
+        $response = $this->withHmacAuth('DELETE', "/api/v1/orders/{$this->order->id}/shipment/dpd", [])
             ->deleteJson("/api/v1/orders/{$this->order->id}/shipment/dpd");
 
         $response->assertStatus(422)
@@ -260,19 +276,28 @@ class DpdLabelApiTest extends TestCase
     /**
      * Helper method to add HMAC authentication headers
      */
-    private function withHmacAuth()
+    private function withHmacAuth(string $method = 'POST', string $path = '', array $body = [])
     {
-        $timestamp = now()->timestamp;
-        $body = '';
-        $path = '';
+        $timestamp = time();
+        $bodyJson = json_encode($body);
+        $digest = 'SHA-256=' . base64_encode(hash('sha256', $bodyJson, true));
         
-        // Simple HMAC for testing - in real implementation this would be more complex
-        $signature = hash_hmac('sha256', "GET{$path}{$body}{$timestamp}", 'test-secret');
+        // Create string to sign in correct format matching backend
+        $stringToSign = implode("\n", [
+            $method,
+            $path,
+            $timestamp,
+            $digest
+        ]);
         
+        $signature = base64_encode(hash_hmac('sha256', $stringToSign, $this->apiClient->secret_hash, true));
+
         return $this->withHeaders([
-            'X-API-Key' => $this->apiClient->key_id,
-            'X-Timestamp' => $timestamp,
+            'X-Key-Id' => $this->apiClient->key_id,
             'X-Signature' => $signature,
+            'X-Timestamp' => $timestamp,
+            'Digest' => $digest,
+            'Content-Type' => 'application/json',
         ]);
     }
 }

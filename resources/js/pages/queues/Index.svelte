@@ -8,6 +8,7 @@
     import { Button } from '@/components/ui/button';
     import { RefreshCw, Activity, AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-svelte';
     import { onMount } from 'svelte';
+    import { spaApiClient } from '@/lib/spa-api';
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -29,42 +30,19 @@
 
     async function loadData() {
         isLoading = true;
+        // Update frontend components use spaApiClient for authenticated API calls
         try {
             // Load queue statistics
-            const statsResponse = await fetch('/api/v1/queues/stats', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            if (statsResponse.ok) {
-                const statsData = await statsResponse.json();
-                stats = statsData.data;
-            }
+            const statsResponse = await spaApiClient.get('/api/v1/queues/stats');
+            stats = statsResponse.data;
 
             // Load recent jobs
-            const recentResponse = await fetch('/api/v1/queues/recent', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            if (recentResponse.ok) {
-                const recentData = await recentResponse.json();
-                recentJobs = recentData.data;
-            }
+            const recentResponse = await spaApiClient.get('/api/v1/queues/recent');
+            recentJobs = recentResponse.data;
 
             // Load failed jobs
-            const failedResponse = await fetch('/api/v1/queues/failed', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            if (failedResponse.ok) {
-                const failedData = await failedResponse.json();
-                failedJobs = failedData.data;
-            }
+            const failedResponse = await spaApiClient.get('/api/v1/queues/failed');
+            failedJobs = failedResponse.data;
         } catch (error) {
             console.error('Failed to load queue data:', error);
         } finally {
@@ -74,16 +52,8 @@
 
     async function retryJob(jobId) {
         try {
-            const response = await fetch(`/api/v1/queues/failed/${jobId}/retry`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-            if (response.ok) {
-                loadData(); // Refresh data
-            }
+            await spaApiClient.post(`/api/v1/queues/failed/${jobId}/retry`);
+            loadData(); // Refresh data
         } catch (error) {
             console.error('Failed to retry job:', error);
         }
@@ -92,16 +62,8 @@
     async function deleteJob(jobId) {
         if (confirm('Are you sure you want to delete this failed job?')) {
             try {
-                const response = await fetch(`/api/v1/queues/failed/${jobId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-                if (response.ok) {
-                    loadData(); // Refresh data
-                }
+                await spaApiClient.delete(`/api/v1/queues/failed/${jobId}`);
+                loadData(); // Refresh data
             } catch (error) {
                 console.error('Failed to delete job:', error);
             }
@@ -111,16 +73,8 @@
     async function clearAllFailedJobs() {
         if (confirm('Are you sure you want to clear all failed jobs? This action cannot be undone.')) {
             try {
-                const response = await fetch('/api/v1/queues/failed', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-                if (response.ok) {
-                    loadData(); // Refresh data
-                }
+                await spaApiClient.delete('/api/v1/queues/failed');
+                loadData(); // Refresh data
             } catch (error) {
                 console.error('Failed to clear failed jobs:', error);
             }

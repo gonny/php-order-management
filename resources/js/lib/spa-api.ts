@@ -21,114 +21,84 @@ type ClientFilters = any;
 type ClientUpdateDTO = any;
 type ShippingLabel = any;
 type LabelCreateDTO = any;
-type Webhook = any;
-type WebhookFilters = any;
 
-// API Configuration
-interface ApiConfig {
+// User authentication types
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// SPA API Configuration
+interface SpaApiConfig {
   baseUrl: string;
-  keyId?: string;
-  secret?: string;
   timeout?: number;
 }
 
-// HMAC Authentication utilities
-class HMACAuth {
-  constructor(private keyId: string, private secret: string) {}
-
-  private async generateBodyHash(body: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(body);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
-  }
-
-  private async generateSignature(
-    method: string,
-    path: string,
-    timestamp: number,
-    digest: string
-  ): Promise<string> {
-    // Match backend format: method\npath\ntimestamp\ndigest
-    const stringToSign = [method, path, timestamp.toString(), digest].join('\n');
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(this.secret);
-    const messageData = encoder.encode(stringToSign);
-    
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
-    
-    const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
-    return btoa(String.fromCharCode(...new Uint8Array(signature)));
-  }
-
-  async generateHeaders(
-    method: string,
-    path: string,
-    body: string = ''
-  ): Promise<Record<string, string>> {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const bodyHash = await this.generateBodyHash(body);
-    const digest = `SHA-256=${bodyHash}`;
-    const signature = await this.generateSignature(method, path, timestamp, digest);
-
-    return {
-      'X-Key-Id': this.keyId,
-      'X-Signature': signature,
-      'X-Timestamp': timestamp.toString(),
-      'Digest': digest,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-  }
-}
-
-// Main API Client class
-export class ApiClient {
+/**
+ * Sanctum-based API Client for SPA (Single Page Application)
+ * 
+ * This client uses Laravel Sanctum for stateful session-based authentication.
+ * It leverages the existing Laravel session authentication - no separate login needed.
+ * Users authenticate via standard Laravel auth (/login), then this client automatically
+ * works with the existing session via Sanctum's stateful authentication.
+ */
+export class SpaApiClient {
   private baseUrl: string;
-  private auth?: HMACAuth;
   private timeout: number;
+  private csrfInitialized = false;
 
-  constructor(config: ApiConfig) {
+  constructor(config: SpaApiConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, ''); // Remove trailing slash
     this.timeout = config.timeout || 30000;
-    
-    if (config.keyId && config.secret) {
-      this.auth = new HMACAuth(config.keyId, config.secret);
-    }
   }
 
+  /**
+   * Initialize CSRF protection by fetching CSRF cookie from Sanctum
+   * This should be called when the app starts for proper session authentication
+   */
+  async initializeCsrf(): Promise<void> {
+    const url = `${this.baseUrl}/sanctum/csrf-cookie`;
+    await fetch(url, {
+      method: 'GET',
+      credentials: 'include', // Important to include session cookies
+    });
+  }
+
+  /**
+   * Get CSRF token from meta tag
+   */
+  private getCsrfToken(): string | null {
+    const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    return metaToken || null;
+  }
+
+  /**
+   * Make an authenticated request to the SPA API
+   */
   private async request<T>(
     method: string,
     endpoint: string,
     data?: any,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const body = data ? JSON.stringify(data) : '';
-    
-    let headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    // Add HMAC authentication if configured
-    if (this.auth) {
-      const authHeaders = await this.auth.generateHeaders(
-        method,
-        endpoint,
-        body
-      );
-      headers = { ...headers, ...authHeaders };
+    // Initialize CSRF on first request if not already done
+    if (!this.csrfInitialized) {
+      await this.initializeCsrf();
+      this.csrfInitialized = true;
     }
 
-    // Add CSRF token for Laravel
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const url = `${this.baseUrl}${endpoint}`;
+    const body = data ? JSON.stringify(data) : undefined;
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest', // Important for Laravel to recognize as AJAX
+    };
+
+    // Add CSRF token from meta tag
+    const csrfToken = this.getCsrfToken();
     if (csrfToken) {
       headers['X-CSRF-TOKEN'] = csrfToken;
     }
@@ -140,8 +110,9 @@ export class ApiClient {
       const response = await fetch(url, {
         method,
         headers: { ...headers, ...options.headers },
-        body: body || options.body,
+        body,
         signal: controller.signal,
+        credentials: 'include', // Important for session-based auth
         ...options,
       });
 
@@ -152,38 +123,58 @@ export class ApiClient {
           error: 'Network Error',
           message: `HTTP ${response.status}: ${response.statusText}`,
         }));
-        throw new ApiClientError(errorData, response.status);
+        throw new SpaApiClientError(errorData, response.status);
+      }
+
+      // Handle 204 No Content responses
+      if (response.status === 204) {
+        return undefined as T;
       }
 
       return await response.json();
     } catch (error) {
       clearTimeout(timeoutId);
       
-      if (error instanceof ApiClientError) {
+      if (error instanceof SpaApiClientError) {
         throw error;
       }
       
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new ApiClientError({ error: 'Request Timeout' }, 408);
+        throw new SpaApiClientError({ error: 'Request Timeout' }, 408);
       }
       
-      throw new ApiClientError({ 
+      throw new SpaApiClientError({ 
         error: 'Network Error',
         message: error instanceof Error ? error.message : 'Unknown error'
       }, 0);
     }
   }
 
+  // User info methods
+
+  /**
+   * Get current authenticated user (uses existing session)
+   */
+  async getUser(): Promise<User> {
+    const response = await this.request<{ user: User }>(
+      'GET',
+      '/spa/v1/auth/user'
+    );
+    return response.user;
+  }
+
   // Dashboard
+
   async getDashboardMetrics(): Promise<DashboardMetrics> {
     const response = await this.request<ApiResponse<DashboardMetrics>>(
       'GET',
-      '/api/v1/dashboard/metrics'
+      '/spa/v1/dashboard/metrics'
     );
     return response.data;
   }
 
   // Orders
+
   async getOrders(filters: OrderFilters = {}): Promise<PaginatedResponse<Order>> {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -197,7 +188,7 @@ export class ApiClient {
     });
 
     const queryString = params.toString();
-    const endpoint = `/api/v1/orders${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/spa/v1/orders${queryString ? `?${queryString}` : ''}`;
     
     return await this.request<PaginatedResponse<Order>>('GET', endpoint);
   }
@@ -205,7 +196,7 @@ export class ApiClient {
   async getOrder(id: string): Promise<Order> {
     const response = await this.request<ApiResponse<Order>>(
       'GET',
-      `/api/v1/orders/${id}`
+      `/spa/v1/orders/${id}`
     );
     return response.data;
   }
@@ -213,7 +204,7 @@ export class ApiClient {
   async createOrder(data: OrderCreateDTO): Promise<Order> {
     const response = await this.request<ApiResponse<Order>>(
       'POST',
-      '/api/v1/orders',
+      '/spa/v1/orders',
       data
     );
     return response.data;
@@ -222,53 +213,42 @@ export class ApiClient {
   async updateOrder(id: string, data: OrderUpdateDTO): Promise<Order> {
     const response = await this.request<ApiResponse<Order>>(
       'PATCH',
-      `/api/v1/orders/${id}`,
+      `/spa/v1/orders/${id}`,
       data
     );
     return response.data;
   }
 
   async deleteOrder(id: string): Promise<void> {
-    await this.request<void>('DELETE', `/api/v1/orders/${id}`);
+    await this.request<void>('DELETE', `/spa/v1/orders/${id}`);
   }
 
   async transitionOrder(id: string, transition: OrderTransition): Promise<Order> {
     const response = await this.request<ApiResponse<Order>>(
       'POST',
-      `/api/v1/orders/${id}/transitions/${transition}`
+      `/spa/v1/orders/${id}/transitions/${transition}`
     );
     return response.data;
   }
 
   // Shipping Labels
+
   async createLabel(orderId: string, data: LabelCreateDTO = {}): Promise<ShippingLabel> {
     const response = await this.request<ApiResponse<ShippingLabel>>(
       'POST',
-      `/api/v1/orders/${orderId}/labels`,
+      `/spa/v1/orders/${orderId}/label`,
       data
     );
     return response.data;
   }
 
   async voidLabel(labelId: string): Promise<boolean> {
-    await this.request<void>('DELETE', `/api/v1/labels/${labelId}`);
+    await this.request<void>('DELETE', `/spa/v1/labels/${labelId}`);
     return true;
   }
 
-  async downloadLabel(labelId: string): Promise<Blob> {
-    const response = await fetch(`${this.baseUrl}/api/v1/labels/${labelId}/download`, {
-      method: 'GET',
-      headers: await this.auth?.generateHeaders('GET', `/api/v1/labels/${labelId}/download`) || {}
-    });
-
-    if (!response.ok) {
-      throw new ApiClientError({ error: 'Download failed' }, response.status);
-    }
-
-    return await response.blob();
-  }
-
   // Clients
+
   async getClients(filters: ClientFilters = {}): Promise<PaginatedResponse<Client>> {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -278,7 +258,7 @@ export class ApiClient {
     });
 
     const queryString = params.toString();
-    const endpoint = `/api/v1/clients${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/spa/v1/clients${queryString ? `?${queryString}` : ''}`;
     
     return await this.request<PaginatedResponse<Client>>('GET', endpoint);
   }
@@ -286,7 +266,7 @@ export class ApiClient {
   async getClient(id: string): Promise<Client> {
     const response = await this.request<ApiResponse<Client>>(
       'GET',
-      `/api/v1/clients/${id}`
+      `/spa/v1/clients/${id}`
     );
     return response.data;
   }
@@ -294,7 +274,7 @@ export class ApiClient {
   async createClient(data: ClientCreateDTO): Promise<Client> {
     const response = await this.request<ApiResponse<Client>>(
       'POST',
-      '/api/v1/clients',
+      '/spa/v1/clients',
       data
     );
     return response.data;
@@ -303,60 +283,25 @@ export class ApiClient {
   async updateClient(id: string, data: ClientUpdateDTO): Promise<Client> {
     const response = await this.request<ApiResponse<Client>>(
       'PATCH',
-      `/api/v1/clients/${id}`,
+      `/spa/v1/clients/${id}`,
       data
     );
     return response.data;
   }
 
   async deleteClient(id: string): Promise<void> {
-    await this.request<void>('DELETE', `/api/v1/clients/${id}`);
-  }
-
-  // Webhooks
-  async getWebhooks(filters: WebhookFilters = {}): Promise<PaginatedResponse<Webhook>> {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          value.forEach(v => params.append(`${key}[]`, v.toString()));
-        } else {
-          params.append(key, value.toString());
-        }
-      }
-    });
-
-    const queryString = params.toString();
-    const endpoint = `/api/v1/webhooks${queryString ? `?${queryString}` : ''}`;
-    
-    return await this.request<PaginatedResponse<Webhook>>('GET', endpoint);
-  }
-
-  async getWebhook(id: string): Promise<Webhook> {
-    const response = await this.request<ApiResponse<Webhook>>(
-      'GET',
-      `/api/v1/webhooks/${id}`
-    );
-    return response.data;
-  }
-
-  async reprocessWebhook(id: string): Promise<Webhook> {
-    const response = await this.request<ApiResponse<Webhook>>(
-      'POST',
-      `/api/v1/webhooks/${id}/reprocess`
-    );
-    return response.data;
+    await this.request<void>('DELETE', `/spa/v1/clients/${id}`);
   }
 }
 
-// Custom Error class
-export class ApiClientError extends Error {
+// Custom Error class for SPA API
+export class SpaApiClientError extends Error {
   constructor(
     public apiError: ApiError,
     public status: number
   ) {
     super(apiError.message || apiError.error);
-    this.name = 'ApiClientError';
+    this.name = 'SpaApiClientError';
   }
 
   get isValidationError(): boolean {
@@ -384,15 +329,21 @@ export class ApiClientError extends Error {
   }
 }
 
-// Default API client instance
-export const apiClient = new ApiClient({
+// Default SPA API client instance
+export const spaApiClient = new SpaApiClient({
   baseUrl: window.location.origin,
   timeout: 30000,
 });
 
-// Helper function to handle API errors in components
-export function handleApiError(error: unknown): string {
-  if (error instanceof ApiClientError) {
+// Helper function to initialize the SPA API client
+// Call this when your app starts to ensure CSRF protection is set up
+export async function initializeSpaApi(): Promise<void> {
+  await spaApiClient.initializeCsrf();
+}
+
+// Helper function to handle SPA API errors
+export function handleSpaApiError(error: unknown): string {
+  if (error instanceof SpaApiClientError) {
     if (error.isValidationError && error.validationErrors) {
       const firstError = Object.values(error.validationErrors)[0];
       return firstError?.[0] || error.message;

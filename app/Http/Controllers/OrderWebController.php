@@ -37,7 +37,7 @@ class OrderWebController extends Controller
      */
     public function show(Order $order): Response
     {
-        $order->load(['client', 'items', 'shippingAddress', 'billingAddress', 'labels']);
+        $order->load(['client', 'items', 'shippingAddress', 'billingAddress', 'shippingLabels']);
 
         return Inertia::render('orders/Show', [
             'order' => $order,

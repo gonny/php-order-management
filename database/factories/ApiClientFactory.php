@@ -30,6 +30,7 @@ class ApiClientFactory extends Factory
             'meta' => [
                 'created_by' => 'factory',
                 'environment' => 'testing',
+                'secret' => $secret, // Store plain secret in meta for testing
             ],
         ];
     }
