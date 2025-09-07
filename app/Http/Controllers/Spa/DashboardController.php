@@ -64,6 +64,11 @@ class DashboardController extends Controller
                         'created_at' => $order->created_at->toISOString(),
                     ];
                 }),
+            "queue_sizes" => [
+                "pending_jobs" => 0,
+            ],
+            "recent_orders" => [],
+            "recent_activities" => []
         ];
 
         return response()->json([

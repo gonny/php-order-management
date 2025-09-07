@@ -8,7 +8,7 @@
     import { Button } from '@/components/ui/button';
     import { RefreshCw, Activity, AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-svelte';
     import { onMount } from 'svelte';
-    import { spaApiClient } from '@/lib/spa-api-client';
+    import { spaApiClient } from '@/lib/spa-api';
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },

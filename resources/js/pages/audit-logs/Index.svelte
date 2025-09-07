@@ -11,7 +11,7 @@
     import * as Select from '@/components/ui/select';
     import { RefreshCw, Filter, FileText, User, Activity, Clock, Eye } from 'lucide-svelte';
     import { onMount } from 'svelte';
-    import { spaApiClient } from '@/lib/spa-api-client';
+    import { spaApiClient } from '@/lib/spa-api';
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
