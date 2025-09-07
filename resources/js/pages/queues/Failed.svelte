@@ -9,7 +9,7 @@
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: route('dashboard') },
         { title: 'Queues', href: route('queues.index') },
-        { title: 'Failed Jobs' }
+        { title: 'Failed Jobs', href: '' }
     ];
 </script>
 
@@ -28,7 +28,7 @@
             </Card.Root>
         {:else}
             <div class="grid gap-4">
-                {#each failed_jobs as job}
+                {#each failed_jobs as job (job.id)}
                     <Card.Root>
                         <Card.Header>
                             <Card.Title class="text-lg">{job.name || 'Unknown Job'}</Card.Title>

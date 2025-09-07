@@ -292,6 +292,27 @@ export class SpaApiClient {
   async deleteClient(id: string): Promise<void> {
     await this.request<void>('DELETE', `/spa/v1/clients/${id}`);
   }
+
+  // Generic HTTP methods for flexibility
+  async get<T = any>(endpoint: string): Promise<T> {
+    return this.request<T>('GET', endpoint);
+  }
+
+  async post<T = any>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>('POST', endpoint, data);
+  }
+
+  async put<T = any>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>('PUT', endpoint, data);
+  }
+
+  async patch<T = any>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>('PATCH', endpoint, data);
+  }
+
+  async delete<T = any>(endpoint: string): Promise<T> {
+    return this.request<T>('DELETE', endpoint);
+  }
 }
 
 // Custom Error class for SPA API

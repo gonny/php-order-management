@@ -2,7 +2,6 @@
     import AppLayout from '@/layouts/AppLayout.svelte';
     import type { BreadcrumbItem } from '@/types';
     import * as Card from '@/components/ui/card';
-    import * as Form from '@/components/ui/form';
     import { Input } from '@/components/ui/input';
     import { Label } from '@/components/ui/label';
     import { Button } from '@/components/ui/button';
@@ -174,7 +173,7 @@
                     </div>
                 </Card.Header>
                 <Card.Content class="space-y-4">
-                    {#each form.items as item, index}
+                    {#each form.items as item, index (index)}
                         <div class="grid grid-cols-12 gap-4 items-end">
                             <div class="col-span-3">
                                 <Label>Item Name</Label>

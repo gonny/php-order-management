@@ -265,6 +265,7 @@
                 <!-- Loading skeleton -->
                 <div class="p-6">
                     <div class="space-y-4">
+                        <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
                         {#each Array(5) as _, index (index)}
                             <div class="flex items-center space-x-4">
                                 <Skeleton class="h-12 w-12 rounded" />
@@ -422,7 +423,7 @@
                                 {#each Array.from({ length: Math.min(5, webhooksData.last_page) }, (_, i) => {
                                     const start = Math.max(1, webhooksData.current_page - 2);
                                     return start + i;
-                                }).filter(page => page <= webhooksData.last_page) as page}
+                                }).filter(page => page <= webhooksData.last_page) as page (page)}
                                     <Button
                                         variant={page === webhooksData.current_page ? "default" : "outline"}
                                         size="sm"

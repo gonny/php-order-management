@@ -183,7 +183,7 @@
                     </div>
                 </Card.Header>
                 <Card.Content class="space-y-4">
-                    {#each form.items as item, index}
+                    {#each form.items as item, index (index)}
                         <div class="grid grid-cols-12 gap-4 items-end">
                             <div class="col-span-3">
                                 <Label>Item Name</Label>

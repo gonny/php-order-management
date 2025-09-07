@@ -15,7 +15,27 @@
         { title: 'Queue Management', href: '/queues' },
     ];
 
-    let stats = {
+    interface QueueJob {
+        id: string;
+        job_class: string;
+        queue: string;
+        status: string;
+        attempts: number;
+        created_at: string;
+        failed_at?: string;
+        payload?: any;
+        exception?: string;
+    }
+
+    interface QueueStats {
+        pending_jobs: number;
+        failed_jobs: number;
+        processed_jobs_today: number;
+        queue_names: string[];
+        workers_status: { active_workers: number; last_heartbeat: string };
+    }
+
+    let stats: QueueStats = {
         pending_jobs: 0,
         failed_jobs: 0,
         processed_jobs_today: 0,
@@ -23,8 +43,8 @@
         workers_status: { active_workers: 0, last_heartbeat: '' }
     };
 
-    let recentJobs = [];
-    let failedJobs = [];
+    let recentJobs: QueueJob[] = [];
+    let failedJobs: QueueJob[] = [];
     let isLoading = true;
     let activeTab = 'overview';
 
@@ -50,7 +70,7 @@
         }
     }
 
-    async function retryJob(jobId) {
+    async function retryJob(jobId: string) {
         try {
             await spaApiClient.post(`/api/v1/queues/failed/${jobId}/retry`);
             loadData(); // Refresh data
@@ -59,7 +79,7 @@
         }
     }
 
-    async function deleteJob(jobId) {
+    async function deleteJob(jobId: string) {
         if (confirm('Are you sure you want to delete this failed job?')) {
             try {
                 await spaApiClient.delete(`/api/v1/queues/failed/${jobId}`);
@@ -81,13 +101,13 @@
         }
     }
 
-    function formatDate(dateString) {
+    function formatDate(dateString: string | null | undefined): string {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleString();
     }
 
-    function getStatusColor(status) {
-        const colors = {
+    function getStatusColor(status: string): string {
+        const colors: Record<string, string> = {
             pending: 'bg-yellow-100 text-yellow-800',
             processing: 'bg-blue-100 text-blue-800',
             completed: 'bg-green-100 text-green-800',
@@ -96,7 +116,7 @@
         return colors[status] || 'bg-gray-100 text-gray-800';
     }
 
-    function getStatusIcon(status) {
+    function getStatusIcon(status: string) {
         switch (status) {
             case 'pending': return Clock;
             case 'processing': return Activity;
@@ -215,7 +235,7 @@
                                     </Table.Row>
                                 </Table.Header>
                                 <Table.Body>
-                                    {#each recentJobs as job}
+                                    {#each recentJobs as job (job.id)}
                                         <Table.Row>
                                             <Table.Cell class="font-medium">{job.job_class}</Table.Cell>
                                             <Table.Cell>{job.queue}</Table.Cell>
@@ -277,7 +297,7 @@
                                     </Table.Row>
                                 </Table.Header>
                                 <Table.Body>
-                                    {#each failedJobs as job}
+                                    {#each failedJobs as job (job.id)}
                                         <Table.Row>
                                             <Table.Cell class="font-medium">
                                                 {job.payload?.displayName || 'Unknown Job'}

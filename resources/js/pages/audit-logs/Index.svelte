@@ -9,9 +9,10 @@
     import { Input } from '@/components/ui/input';
     import { Label } from '@/components/ui/label';
     import * as Select from '@/components/ui/select';
-    import { RefreshCw, Filter, FileText, User, Activity, Clock, Eye } from 'lucide-svelte';
+    import { RefreshCw, Filter, FileText, User, Activity, Clock } from 'lucide-svelte';
     import { onMount } from 'svelte';
     import { spaApiClient } from '@/lib/spa-api';
+    import { SvelteURLSearchParams } from 'svelte/reactivity';
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -52,7 +53,7 @@
     async function loadAuditLogs() {
         isLoading = true;
         try {
-            const params = new URLSearchParams();
+            const params = new SvelteURLSearchParams();
             Object.entries(filters).forEach(([key, value]) => {
                 if (value) params.append(key, value.toString());
             });
@@ -124,27 +125,6 @@
             case 'api': return Activity;
             default: return Activity;
         }
-    }
-
-    function formatChanges(auditLog: any) {
-        if (!auditLog.before || !auditLog.after) return 'N/A';
-        
-        const changes = [];
-        const before = auditLog.before;
-        const after = auditLog.after;
-        
-        // Compare before and after
-        Object.keys(after).forEach(key => {
-            if (before[key] !== after[key]) {
-                changes.push({
-                    field: key,
-                    from: before[key],
-                    to: after[key]
-                });
-            }
-        });
-        
-        return changes;
     }
 
     onMount(() => {
@@ -275,7 +255,7 @@
                                     </Table.Row>
                                 </Table.Header>
                                 <Table.Body>
-                                    {#each auditLogs as log}
+                                    {#each auditLogs as log (log.id)}
                                         <Table.Row>
                                             <Table.Cell>
                                                 <div class="flex items-center gap-2">
@@ -405,7 +385,7 @@
                         </Card.Header>
                         <Card.Content>
                             <div class="space-y-2">
-                                {#each Object.entries(stats.by_entity_type) as [entityType, count]}
+                                {#each Object.entries(stats.by_entity_type) as [entityType, count] (entityType)}
                                     <div class="flex justify-between items-center">
                                         <span class="capitalize">{entityType}</span>
                                         <Badge variant="secondary">{count}</Badge>
@@ -421,7 +401,7 @@
                         </Card.Header>
                         <Card.Content>
                             <div class="space-y-2">
-                                {#each Object.entries(stats.by_action) as [action, count]}
+                                {#each Object.entries(stats.by_action) as [action, count] (action)}
                                     <div class="flex justify-between items-center">
                                         <Badge class={getActionColor(action)}>{action}</Badge>
                                         <Badge variant="secondary">{count}</Badge>
@@ -437,7 +417,7 @@
                         </Card.Header>
                         <Card.Content>
                             <div class="space-y-2">
-                                {#each Object.entries(stats.by_actor_type) as [actorType, count]}
+                                {#each Object.entries(stats.by_actor_type) as [actorType, count] (actorType)}
                                     <div class="flex justify-between items-center">
                                         <div class="flex items-center gap-2">
                                             <svelte:component this={getActorIcon(actorType)} class="h-4 w-4" />

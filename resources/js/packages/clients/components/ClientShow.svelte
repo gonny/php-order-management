@@ -13,7 +13,6 @@
         Edit, 
         Mail,
         Phone,
-        MapPin,
         Building,
         FileText,
         Package,
@@ -272,7 +271,7 @@
                                                 </Table.Row>
                                             </Table.Header>
                                             <Table.Body>
-                                                {#each client.orders as order}
+                                                {#each client.orders as order (order.id)}
                                                     <Table.Row>
                                                         <Table.Cell>
                                                             <Button
