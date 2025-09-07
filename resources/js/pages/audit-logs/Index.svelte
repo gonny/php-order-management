@@ -19,7 +19,7 @@
         { title: 'Audit Logs', href: '/audit-logs' },
     ];
 
-    let auditLogs = [];
+    let auditLogs: any[] = [];
     let stats = {
         total_entries: 0,
         entries_today: 0,
@@ -32,7 +32,9 @@
         current_page: 1,
         per_page: 20,
         total: 0,
-        last_page: 1
+        last_page: 1,
+        from: 0,
+        to: 0
     };
     let isLoading = true;
     let activeTab = 'logs';
@@ -203,7 +205,7 @@
 
                             <div>
                                 <Label for="action">Action</Label>
-                                <Select.Root bind:selected={filters.action}>
+                                <Select.Root type="single" bind:value={filters.action}>
                                     <Select.Trigger>
                                         <Select.Value placeholder="All actions" />
                                     </Select.Trigger>

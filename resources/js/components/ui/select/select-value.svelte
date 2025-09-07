@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { Select as SelectPrimitive } from "bits-ui";
-
 	let {
 		ref = $bindable(null),
 		placeholder,
@@ -8,9 +6,10 @@
 	}: any = $props();
 </script>
 
-<SelectPrimitive.Value
-	bind:ref
+<span
+	bind:this={ref}
 	data-slot="select-value"
-	{placeholder}
 	{...restProps}
-/>
+>
+	{placeholder || "Select an option..."}
+</span>

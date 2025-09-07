@@ -72,7 +72,7 @@
     }
 
     function removeItem(index: number) {
-        form.items = form.items.filter((_, i) => i !== index);
+        form.items = form.items.filter((_: any, i: number) => i !== index);
         calculateTotal();
     }
 
@@ -84,7 +84,7 @@
     }
 
     function calculateTotal() {
-        form.total_amount = form.items.reduce((sum, item) => sum + item.total_price, 0);
+        form.total_amount = form.items.reduce((sum: number, item: any) => sum + item.total_price, 0);
     }
 
     function copyBillingToShipping() {
@@ -140,7 +140,7 @@
                         </div>
                         <div class="space-y-2">
                             <Label for="status">Status</Label>
-                            <Select.Root bind:selected={form.status}>
+                            <Select.Root type="single" bind:value={form.status}>
                                 <Select.Trigger>
                                     <Select.Value placeholder="Select status" />
                                 </Select.Trigger>

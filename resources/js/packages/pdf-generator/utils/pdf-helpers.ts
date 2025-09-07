@@ -5,7 +5,8 @@
  * validation, formatting, and helper functions.
  */
 
-import type { PdfGenerationForm, ImageSlot, PDF_CONFIG } from '../types/pdf';
+import type { PdfGenerationForm, ImageSlot } from '../types/pdf';
+import { PDF_CONFIG } from '../types/pdf';
 
 /**
  * Validates a PDF generation form

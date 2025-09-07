@@ -134,7 +134,7 @@
                         </div>
                         <div class="space-y-2">
                             <Label for="status">Status</Label>
-                            <Select.Root bind:selected={form.status}>
+                            <Select.Root type="single" bind:value={form.status}>
                                 <Select.Trigger>
                                     <Select.Value placeholder="Select status" />
                                 </Select.Trigger>
