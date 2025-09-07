@@ -178,7 +178,7 @@
                 <!-- Source Filter -->
                 <div class="space-y-2">
                     <Label for="source">Source</Label>
-                    <Select.Root type="single" bind:selected={filters.source}>
+                    <Select.Root type="single" bind:value={filters.source}>
                         <Select.Trigger>
                             <span>Select source...</span>
                         </Select.Trigger>
@@ -195,7 +195,7 @@
                 <!-- Status Filter -->
                 <div class="space-y-2">
                     <Label for="status">Status</Label>
-                    <Select.Root type="single" bind:selected={filters.status}>
+                    <Select.Root type="single" bind:value={filters.status}>
                         <Select.Trigger>
                             <span>Select status...</span>
                         </Select.Trigger>

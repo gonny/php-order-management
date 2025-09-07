@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
@@ -39,21 +38,31 @@ class Order extends Model
 
     // Order status constants
     public const STATUS_NEW = 'new';
+
     public const STATUS_CONFIRMED = 'confirmed';
+
     public const STATUS_PAID = 'paid';
+
     public const STATUS_FULFILLED = 'fulfilled';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_ON_HOLD = 'on_hold';
+
     public const STATUS_FAILED = 'failed';
 
     // Carrier constants
     public const CARRIER_BALIKOVNA = 'balikovna';
+
     public const CARRIER_DPD = 'dpd';
 
     // Shipping method constants
     public const SHIPPING_METHOD_DPD_HOME = 'DPD_Home';
+
     public const SHIPPING_METHOD_DPD_PICKUP = 'DPD_PickupPoint';
+
     public const SHIPPING_METHOD_BALIKOVNA_PICKUP = 'Balikovna_PickupPoint';
 
     public function client(): BelongsTo

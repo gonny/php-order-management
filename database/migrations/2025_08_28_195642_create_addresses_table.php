@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->timestamps();
-            
+
             $table->index(['client_id', 'type']);
         });
     }

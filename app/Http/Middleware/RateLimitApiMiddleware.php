@@ -17,7 +17,7 @@ class RateLimitApiMiddleware
     public function handle(Request $request, Closure $next, int $maxAttempts = 60): Response
     {
         $apiClient = $request->attributes->get('api_client');
-        
+
         if (!$apiClient) {
             // If no API client is authenticated, use IP-based limiting
             $key = 'rate_limit:ip:' . $request->ip();
@@ -27,7 +27,7 @@ class RateLimitApiMiddleware
         }
 
         $attempts = Cache::get($key, 0);
-        
+
         if ($attempts >= $maxAttempts) {
             return response()->json([
                 'error' => 'Rate limit exceeded',

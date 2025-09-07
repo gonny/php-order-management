@@ -19,7 +19,7 @@ class ApiClientFactory extends Factory
     public function definition(): array
     {
         $secret = Str::random(64);
-        
+
         return [
             'key_id' => 'client_' . Str::random(10),
             'secret_hash' => $secret, // Store raw secret for HMAC verification

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->json('raw_response')->nullable();
             $table->json('meta')->nullable();
             $table->timestamps();
-            
+
             $table->index(['order_id', 'status']);
             $table->index('tracking_number');
         });

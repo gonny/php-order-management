@@ -54,8 +54,7 @@ class SanctumMigrationTest extends TestCase
             ->get('/webhooks');
 
         $response->assertOk();
-        $response->assertInertia(fn ($page) => 
-            $page->component('webhooks/Index')
+        $response->assertInertia(fn ($page) => $page->component('webhooks/Index')
         );
     }
 

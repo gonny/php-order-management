@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Web;
 
-use App\Models\Order;
 use App\Models\Client;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -59,7 +59,7 @@ class OrderWebControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(function ($page) {
             $page->has('orders.data.0.client')
-                 ->has('orders.data.0.items');
+                ->has('orders.data.0.items');
         });
     }
 
@@ -73,7 +73,7 @@ class OrderWebControllerTest extends TestCase
         $response->assertInertia(function ($page) {
             $page->has('filters', function ($filters) {
                 return $filters->where('search', 'test')
-                              ->where('status', 'pending');
+                    ->where('status', 'pending');
             });
         });
     }
@@ -96,7 +96,7 @@ class OrderWebControllerTest extends TestCase
 
         $client = Client::factory()->create();
         $order = Order::factory()->create(['client_id' => $client->id]);
-        
+
         // Create order items
         \App\Models\OrderItem::factory()->count(2)->create(['order_id' => $order->id]);
 
@@ -107,9 +107,9 @@ class OrderWebControllerTest extends TestCase
             $page->component('orders/Show')
                 ->has('order', function ($orderProp) use ($order) {
                     return $orderProp->where('id', $order->id)
-                                     ->has('client')
-                                     ->has('items')
-                                     ->etc(); // Allow additional properties including addresses
+                        ->has('client')
+                        ->has('items')
+                        ->etc(); // Allow additional properties including addresses
                 });
         });
     }
@@ -129,10 +129,10 @@ class OrderWebControllerTest extends TestCase
 
         $client = Client::factory()->create();
         $order = Order::factory()->create(['client_id' => $client->id]);
-        
+
         // Create order items
         \App\Models\OrderItem::factory()->count(2)->create(['order_id' => $order->id]);
-        
+
         // Ensure the order has addresses and items
         $order->load(['client', 'items', 'shippingAddress', 'billingAddress']);
 
@@ -143,9 +143,9 @@ class OrderWebControllerTest extends TestCase
             $page->component('orders/Edit')
                 ->has('order', function ($orderProp) use ($order) {
                     return $orderProp->where('id', $order->id)
-                                     ->has('client')
-                                     ->has('items')
-                                     ->etc(); // Allow additional properties including addresses
+                        ->has('client')
+                        ->has('items')
+                        ->etc(); // Allow additional properties including addresses
                 });
         });
     }
@@ -172,10 +172,10 @@ class OrderWebControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(function ($page) {
             $page->has('orders.data', 15) // Should have 15 items
-                 ->has('orders.links') // Should have pagination links
-                 ->has('orders.current_page') // Alternative pagination meta
-                 ->has('orders.per_page')
-                 ->has('orders.total');
+                ->has('orders.links') // Should have pagination links
+                ->has('orders.current_page') // Alternative pagination meta
+                ->has('orders.per_page')
+                ->has('orders.total');
         });
     }
 
@@ -186,19 +186,19 @@ class OrderWebControllerTest extends TestCase
         $client = Client::factory()->create();
         $oldOrder = Order::factory()->create([
             'client_id' => $client->id,
-            'created_at' => now()->subDays(2)
+            'created_at' => now()->subDays(2),
         ]);
         $newOrder = Order::factory()->create([
             'client_id' => $client->id,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         $response = $this->get('/orders');
 
         $response->assertStatus(200);
-        $response->assertInertia(function ($page) use ($newOrder, $oldOrder) {
+        $response->assertInertia(function ($page) use ($newOrder) {
             $orders = $page->toArray()['props']['orders']['data'];
-            
+
             // The newer order should be first
             return $orders[0]['id'] === $newOrder->id;
         });

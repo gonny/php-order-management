@@ -33,7 +33,7 @@ class QueueController extends Controller
 
             return response()->json([
                 'data' => $queueStats,
-                'message' => 'Queue statistics retrieved successfully'
+                'message' => 'Queue statistics retrieved successfully',
             ]);
 
         } catch (\Exception $e) {
@@ -52,7 +52,7 @@ class QueueController extends Controller
         try {
             $page = $request->get('page', 1);
             $perPage = min($request->get('per_page', 15), 100);
-            
+
             $failedJobs = collect($this->failedJobProvider->all())
                 ->map(function ($job) {
                     return [
@@ -79,7 +79,7 @@ class QueueController extends Controller
                     'total' => $total,
                     'last_page' => ceil($total / $perPage),
                 ],
-                'message' => 'Failed jobs retrieved successfully'
+                'message' => 'Failed jobs retrieved successfully',
             ]);
 
         } catch (\Exception $e) {
@@ -97,10 +97,10 @@ class QueueController extends Controller
     {
         try {
             $exitCode = Artisan::call('queue:retry', ['id' => [$jobId]]);
-            
+
             if ($exitCode === 0) {
                 return response()->json([
-                    'message' => 'Job queued for retry successfully'
+                    'message' => 'Job queued for retry successfully',
                 ]);
             } else {
                 return response()->json([
@@ -124,10 +124,10 @@ class QueueController extends Controller
     {
         try {
             $exitCode = Artisan::call('queue:forget', ['id' => $jobId]);
-            
+
             if ($exitCode === 0) {
                 return response()->json([
-                    'message' => 'Failed job deleted successfully'
+                    'message' => 'Failed job deleted successfully',
                 ]);
             } else {
                 return response()->json([
@@ -151,10 +151,10 @@ class QueueController extends Controller
     {
         try {
             $exitCode = Artisan::call('queue:flush');
-            
+
             if ($exitCode === 0) {
                 return response()->json([
-                    'message' => 'All failed jobs cleared successfully'
+                    'message' => 'All failed jobs cleared successfully',
                 ]);
             } else {
                 return response()->json([
@@ -178,7 +178,7 @@ class QueueController extends Controller
     {
         try {
             $limit = min($request->get('limit', 20), 100);
-            
+
             // This is a basic implementation - in production you might want to use
             // a more sophisticated job tracking system like Laravel Horizon
             $recentJobs = DB::table('jobs')
@@ -188,6 +188,7 @@ class QueueController extends Controller
                 ->get()
                 ->map(function ($job) {
                     $payload = json_decode($job->payload, true);
+
                     return [
                         'id' => $job->id,
                         'queue' => $job->queue,
@@ -200,7 +201,7 @@ class QueueController extends Controller
 
             return response()->json([
                 'data' => $recentJobs,
-                'message' => 'Recent jobs retrieved successfully'
+                'message' => 'Recent jobs retrieved successfully',
             ]);
 
         } catch (\Exception $e) {
@@ -242,7 +243,7 @@ class QueueController extends Controller
                 ->distinct()
                 ->pluck('queue')
                 ->toArray();
-            
+
             return array_merge(['default'], $queues);
         } catch (\Exception $e) {
             return ['default'];

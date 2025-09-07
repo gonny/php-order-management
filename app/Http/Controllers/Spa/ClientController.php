@@ -22,9 +22,9 @@ class ClientController extends Controller
             $search = $request->get('search');
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('company', 'like', "%{$search}%");
             });
         }
 
@@ -51,7 +51,7 @@ class ClientController extends Controller
                 'per_page' => $clients->perPage(),
                 'total' => $clients->total(),
             ],
-            'message' => 'Clients retrieved successfully'
+            'message' => 'Clients retrieved successfully',
         ]);
     }
 

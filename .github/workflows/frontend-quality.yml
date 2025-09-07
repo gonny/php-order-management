@@ -1,0 +1,37 @@
+name: Frontend Quality Checks
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  frontend-quality:
+    runs-on: ubuntu-latest
+    name: Frontend Linting & Type Checking
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Run TypeScript Check
+      run: npm run svelte:check
+
+    - name: Check code formatting
+      run: npm run format:check
+
+    - name: Build frontend
+      run: npm run build

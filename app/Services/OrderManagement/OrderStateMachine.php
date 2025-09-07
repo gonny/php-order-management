@@ -78,6 +78,7 @@ class OrderStateMachine
     public function canTransition(Order $order, string $toStatus): bool
     {
         $allowedTransitions = self::TRANSITIONS[$order->status] ?? [];
+
         return in_array($toStatus, $allowedTransitions);
     }
 

@@ -30,6 +30,7 @@ class AuditLog extends Model
 
     // Actor type constants
     public const ACTOR_USER = 'user';
+
     public const ACTOR_API = 'api';
 
     public function scopeByEntity($query, string $entityType, string $entityId)
@@ -52,7 +53,7 @@ class AuditLog extends Model
     public function getChangesAttribute(): array
     {
         $changes = [];
-        
+
         if ($this->before && $this->after) {
             foreach ($this->after as $key => $newValue) {
                 $oldValue = $this->before[$key] ?? null;

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->json('before')->nullable();
             $table->json('after')->nullable();
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['entity_type', 'entity_id']);
             $table->index(['actor_type', 'actor_id']);
             $table->index('created_at');

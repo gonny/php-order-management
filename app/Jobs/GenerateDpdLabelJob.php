@@ -11,14 +11,15 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class GenerateDpdLabelJob implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 300; // 5 minutes for DPD API calls
+
     public $backoff = [30, 60, 120]; // Exponential backoff
 
     /**
@@ -45,39 +46,39 @@ class GenerateDpdLabelJob implements ShouldQueue
         try {
             // Validate order requirements
             $this->validateOrder();
-            
+
             // Check for order consolidation
             $ordersToProcess = $this->getOrdersForConsolidation();
-            
+
             // Prepare shipment data
             $shipmentData = $this->prepareShipmentData($ordersToProcess);
-            
+
             // Create DPD shipment
             $response = $dpdService->createShipment($shipmentData);
-            
+
             // Download and save PDF label
             $labelPath = $this->downloadAndSaveLabel($dpdService, $response['shipment_id']);
-            
+
             // Create shipping label records and update orders
             $this->updateOrdersWithShipmentInfo($ordersToProcess, $response, $labelPath);
-            
+
             Log::info('GenerateDpdLabelJob: DPD label generated successfully', [
                 'order_id' => $this->order->id,
                 'shipment_id' => $response['shipment_id'],
                 'tracking_number' => $response['tracking_number'] ?? null,
-                'consolidated_orders' => count($ordersToProcess)
+                'consolidated_orders' => count($ordersToProcess),
             ]);
 
         } catch (\Exception $e) {
             Log::error('GenerateDpdLabelJob: Failed to generate DPD label', [
                 'order_id' => $this->order->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             // Create failed shipping label record
             $this->createFailedShippingLabel($e->getMessage());
-            
+
             throw $e;
         }
     }
@@ -110,7 +111,7 @@ class GenerateDpdLabelJob implements ShouldQueue
     private function getOrdersForConsolidation(): array
     {
         $ordersToProcess = [$this->order];
-        
+
         // Check if we should consolidate orders
         if ($this->order->status === 'paid') {
             // Find other paid orders for the same customer with "rozpracovaná" status
@@ -121,18 +122,18 @@ class GenerateDpdLabelJob implements ShouldQueue
                 ->where('shipping_method', $this->order->shipping_method)
                 ->where('pickup_point_id', $this->order->pickup_point_id) // Same pickup point if applicable
                 ->get();
-            
+
             if ($consolidatableOrders->isNotEmpty()) {
                 $ordersToProcess = array_merge($ordersToProcess, $consolidatableOrders->toArray());
-                
+
                 Log::info('GenerateDpdLabelJob: Consolidating orders', [
                     'primary_order_id' => $this->order->id,
                     'consolidated_order_ids' => $consolidatableOrders->pluck('id')->toArray(),
-                    'total_orders' => count($ordersToProcess)
+                    'total_orders' => count($ordersToProcess),
                 ]);
             }
         }
-        
+
         return $ordersToProcess;
     }
 
@@ -143,17 +144,17 @@ class GenerateDpdLabelJob implements ShouldQueue
     {
         $totalItems = 0;
         $orderNumbers = [];
-        
+
         foreach ($orders as $order) {
             $orderObj = $order instanceof Order ? $order : Order::find($order['id']);
             $totalItems += $orderObj->items()->sum('quantity');
             $orderNumbers[] = $orderObj->number;
         }
-        
+
         $packages = DpdApiService::calculatePackageDimensions($totalItems);
-        
+
         $parcelGroupId = count($orders) > 1 ? 'GRP_' . $this->order->number . '_' . now()->format('YmdHis') : null;
-        
+
         return [
             'order_number' => implode(',', $orderNumbers),
             'shipping_method' => $this->order->shipping_method,
@@ -181,12 +182,12 @@ class GenerateDpdLabelJob implements ShouldQueue
     private function downloadAndSaveLabel(DpdApiService $dpdService, string $shipmentId): string
     {
         $labelContent = $dpdService->downloadLabel($shipmentId);
-        
+
         $fileName = "dpd_label_{$this->order->number}_{$shipmentId}.pdf";
         $labelPath = "labels/{$fileName}";
-        
+
         Storage::disk('local')->put($labelPath, $labelContent);
-        
+
         return $labelPath;
     }
 
@@ -198,17 +199,17 @@ class GenerateDpdLabelJob implements ShouldQueue
         $shipmentId = $response['shipment_id'];
         $trackingNumber = $response['tracking_number'] ?? null;
         $parcelGroupId = $response['parcel_group_id'] ?? null;
-        
+
         foreach ($orders as $order) {
             $orderObj = $order instanceof Order ? $order : Order::find($order['id']);
-            
+
             // Update order with DPD information
             $orderObj->update([
                 'dpd_shipment_id' => $shipmentId,
                 'pdf_label_path' => $labelPath,
                 'parcel_group_id' => $parcelGroupId,
             ]);
-            
+
             // Create shipping label record
             $orderObj->shippingLabels()->create([
                 'carrier' => 'dpd',
@@ -223,7 +224,7 @@ class GenerateDpdLabelJob implements ShouldQueue
                     'pickup_point_id' => $orderObj->pickup_point_id,
                     'parcel_group_id' => $parcelGroupId,
                     'generated_at' => now()->toISOString(),
-                ]
+                ],
             ]);
         }
     }
@@ -245,7 +246,7 @@ class GenerateDpdLabelJob implements ShouldQueue
                 'shipping_method' => $this->order->shipping_method,
                 'pickup_point_id' => $this->order->pickup_point_id,
                 'error_message' => $errorMessage,
-            ]
+            ],
         ]);
     }
 

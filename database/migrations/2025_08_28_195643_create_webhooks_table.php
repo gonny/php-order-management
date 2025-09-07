@@ -23,7 +23,7 @@ return new class extends Migration
             $table->text('processing_result')->nullable();
             $table->integer('retry_count')->default(0);
             $table->timestamps();
-            
+
             $table->index(['source', 'event_type']);
             $table->index(['processed_at', 'retry_count']);
         });

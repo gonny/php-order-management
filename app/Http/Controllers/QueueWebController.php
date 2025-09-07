@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Queue\Failed\FailedJobProviderInterface;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Inertia;
 use Inertia\Response;

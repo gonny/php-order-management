@@ -10,7 +10,7 @@ use Tests\Traits\ApiTestHelpers;
 
 class DashboardControllerTest extends TestCase
 {
-    use RefreshDatabase, ApiTestHelpers;
+    use ApiTestHelpers, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -28,7 +28,7 @@ class DashboardControllerTest extends TestCase
                     'orders' => [
                         'total',
                         'new',
-                        'confirmed', 
+                        'confirmed',
                         'paid',
                         'fulfilled',
                         'completed',
@@ -88,7 +88,7 @@ class DashboardControllerTest extends TestCase
         $initialData = $initialResponse->json('data');
         $initialActiveClients = $initialData['clients']['active'];
         $initialTotalClients = $initialData['clients']['total'];
-        
+
         // Create test clients
         $inactiveClients = Client::factory()->count(5)->create(['is_active' => false]);
         $activeClients = Client::factory()->count(3)->create(['is_active' => true]);
@@ -183,7 +183,7 @@ class DashboardControllerTest extends TestCase
     {
         // Create a client first, then create order with that client
         $client = Client::factory()->create();
-        
+
         Order::factory()->create([
             'status' => 'new',
             'total_amount' => 100.00,
@@ -208,7 +208,7 @@ class DashboardControllerTest extends TestCase
     {
         // Create a client first for all orders
         $client = Client::factory()->create();
-        
+
         // Create orders in different time periods
         Order::factory()->create([
             'status' => 'new',

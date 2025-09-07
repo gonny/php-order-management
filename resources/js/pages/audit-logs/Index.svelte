@@ -170,7 +170,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                             <div>
                                 <Label for="entity_type">Entity Type</Label>
-                                <Select.Root bind:selected={filters.entity_type}>
+                                <Select.Root type="single" bind:value={filters.entity_type}>
                                     <Select.Trigger>
                                         <Select.Value placeholder="All entities" />
                                     </Select.Trigger>
@@ -190,7 +190,7 @@
 
                             <div>
                                 <Label for="actor_type">Actor Type</Label>
-                                <Select.Root bind:selected={filters.actor_type}>
+                                <Select.Root type="single" bind:value={filters.actor_type}>
                                     <Select.Trigger>
                                         <Select.Value placeholder="All actors" />
                                     </Select.Trigger>

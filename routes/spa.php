@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->group(function () {
     // Dashboard
     Route::get('/dashboard/metrics', [DashboardController::class, 'metrics'])->name('spa.dashboard.metrics');
-    
+
     // Orders
     Route::apiResource('orders', OrderController::class)->names([
         'index' => 'spa.orders.index',
@@ -37,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('orders/{order}/shipment/dpd', [OrderController::class, 'deleteDpdShipment'])->name('spa.orders.deleteDpdShipment');
     Route::post('orders/{order}/tracking/refresh', [OrderController::class, 'refreshDpdTracking'])->name('spa.orders.refreshDpdTracking');
     Route::post('orders/{order}/pdf', [OrderController::class, 'generatePdf'])->name('spa.orders.generatePdf');
-    
+
     // Clients
     Route::apiResource('clients', ClientController::class)->names([
         'index' => 'spa.clients.index',
@@ -46,15 +46,15 @@ Route::middleware('auth:sanctum')->group(function () {
         'update' => 'spa.clients.update',
         'destroy' => 'spa.clients.destroy',
     ]);
-    
+
     // Label management
     Route::delete('labels/{label}', [OrderController::class, 'voidLabel'])->name('spa.labels.void');
-    
+
     // Audit Logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('spa.audit-logs.index');
     Route::get('/audit-logs/stats', [AuditLogController::class, 'stats'])->name('spa.audit-logs.stats');
     Route::get('/orders/{order}/audit-logs', [AuditLogController::class, 'orderAuditLogs'])->name('spa.orders.audit-logs');
-    
+
     // User info endpoint for frontend
     Route::get('/auth/user', function () {
         return response()->json([

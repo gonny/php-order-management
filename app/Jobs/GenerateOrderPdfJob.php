@@ -18,6 +18,7 @@ class GenerateOrderPdfJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 300; // 5 minutes
 
     /**
@@ -47,25 +48,25 @@ class GenerateOrderPdfJob implements ShouldQueue
         try {
             // Create images directory if it doesn't exist
             Storage::disk('local')->makeDirectory('temp_images');
-            
+
             // Download and process images
             $processedImages = $this->downloadAndProcessImages();
-            
+
             // Download overlay
             $overlayPath = $this->downloadOverlay();
-            
+
             // Generate HTML for PDF
             $html = $this->generateHtml($processedImages, $overlayPath);
-            
+
             // Generate PDF
             $pdfPath = $this->generatePdf($html);
-            
+
             // Update order with PDF path
             $this->order->update(['pdf_path' => $pdfPath]);
-            
+
             // Clean up temporary files
             $this->cleanupTempFiles($processedImages, $overlayPath);
-            
+
             Log::info('PDF generated successfully', [
                 'order_id' => $this->order->id,
                 'pdf_path' => $pdfPath,
@@ -77,7 +78,7 @@ class GenerateOrderPdfJob implements ShouldQueue
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             throw $e;
         }
     }
@@ -88,28 +89,28 @@ class GenerateOrderPdfJob implements ShouldQueue
     private function downloadAndProcessImages(): array
     {
         $processedImages = [];
-        
+
         foreach ($this->images as $index => $imageUrl) {
             Log::info("Processing image {$index}", ['url' => $imageUrl]);
-            
+
             // Download image
             $response = Http::timeout(60)->get($imageUrl);
-            
+
             if (!$response->successful()) {
                 throw new \Exception("Failed to download image from {$imageUrl}");
             }
-            
+
             // Save temporary image
             $tempPath = "temp_images/image_{$index}_" . time() . '.png';
             Storage::disk('local')->put($tempPath, $response->body());
-            
+
             // For simplicity, we'll use the downloaded images directly
             // In a real implementation, you might want to use Intervention Image
             // to resize and validate dimensions
             $fullPath = Storage::disk('local')->path($tempPath);
             $processedImages[] = $fullPath;
         }
-        
+
         return $processedImages;
     }
 
@@ -119,16 +120,16 @@ class GenerateOrderPdfJob implements ShouldQueue
     private function downloadOverlay(): string
     {
         Log::info('Downloading overlay', ['url' => $this->overlayUrl]);
-        
+
         $response = Http::timeout(60)->get($this->overlayUrl);
-        
+
         if (!$response->successful()) {
             throw new \Exception("Failed to download overlay from {$this->overlayUrl}");
         }
-        
+
         $overlayPath = 'temp_images/overlay_' . time() . '.svg';
         Storage::disk('local')->put($overlayPath, $response->body());
-        
+
         return Storage::disk('local')->path($overlayPath);
     }
 
@@ -141,12 +142,12 @@ class GenerateOrderPdfJob implements ShouldQueue
         $gridSize = 3;
         $cellsPerRow = $gridSize;
         $totalCells = $gridSize * $gridSize;
-        
+
         // Fill empty cells if needed
         while (count($processedImages) < $totalCells) {
             $processedImages[] = null;
         }
-        
+
         // Generate HTML
         $html = view('pdf.order-grid', [
             'images' => $processedImages,
@@ -155,7 +156,7 @@ class GenerateOrderPdfJob implements ShouldQueue
             'cellsPerRow' => $cellsPerRow,
             'order' => $this->order,
         ])->render();
-        
+
         return $html;
     }
 
@@ -178,17 +179,17 @@ class GenerateOrderPdfJob implements ShouldQueue
                 'margin_left' => 0,
                 'margin_right' => 0,
             ]);
-        
+
         // Ensure PDF directory exists
         Storage::disk('pdfs')->makeDirectory('');
-        
+
         // Generate filename
         $filename = "order_{$this->order->id}.pdf";
         $pdfPath = Storage::disk('pdfs')->path($filename);
-        
+
         // Save PDF
         $pdf->save($pdfPath);
-        
+
         return $filename;
     }
 
@@ -203,12 +204,12 @@ class GenerateOrderPdfJob implements ShouldQueue
                 unlink($imagePath);
             }
         }
-        
+
         // Clean up overlay
         if (file_exists($overlayPath)) {
             unlink($overlayPath);
         }
-        
+
         // Clean up temp directory if empty
         $tempDir = Storage::disk('local')->path('temp_images');
         if (is_dir($tempDir) && count(scandir($tempDir)) === 2) { // Only . and ..

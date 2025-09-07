@@ -14,9 +14,10 @@ use Illuminate\Support\Facades\Storage;
 
 class DeleteDpdShipmentJob implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 120;
 
     /**

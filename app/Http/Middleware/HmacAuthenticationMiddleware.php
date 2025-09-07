@@ -31,7 +31,7 @@ class HmacAuthenticationMiddleware
                 'path' => $request->path(),
                 'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'error' => 'Authentication failed',
                 'message' => 'Invalid signature or authentication headers',
@@ -73,7 +73,7 @@ class HmacAuthenticationMiddleware
         // Validate timestamp (prevent replay attacks)
         $requestTime = Carbon::createFromTimestamp($timestamp);
         $now = Carbon::now();
-        
+
         if ($requestTime->diffInSeconds($now) > 300) { // 5 minute tolerance
             throw new \Exception('Request timestamp is too old or too far in the future');
         }
@@ -81,7 +81,7 @@ class HmacAuthenticationMiddleware
         // Validate digest
         $body = $request->getContent();
         $expectedDigest = 'SHA-256=' . base64_encode(hash('sha256', $body, true));
-        
+
         if (!hash_equals($expectedDigest, $digest)) {
             throw new \Exception('Invalid digest');
         }
@@ -95,7 +95,7 @@ class HmacAuthenticationMiddleware
         ]);
 
         $expectedSignature = base64_encode(hash_hmac('sha256', $stringToSign, $apiClient->secret_hash, true));
-        
+
         if (!hash_equals($expectedSignature, $signature)) {
             throw new \Exception('Invalid HMAC signature');
         }

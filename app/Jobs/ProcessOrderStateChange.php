@@ -17,6 +17,7 @@ class ProcessOrderStateChange implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 60;
 
     /**
@@ -84,7 +85,7 @@ class ProcessOrderStateChange implements ShouldQueue
         if (in_array($this->newStatus, $notifiableStatuses)) {
             // In a real implementation, this would create and send a notification
             // Notification::send($this->order->client, new OrderStatusChanged($this->order, $this->previousStatus, $this->newStatus));
-            
+
             Log::info('Customer notification sent', [
                 'order_id' => $this->order->id,
                 'customer_email' => $this->order->client->email,
@@ -110,7 +111,7 @@ class ProcessOrderStateChange implements ShouldQueue
         // Auto-generate shipping label if carrier is set
         if ($this->order->carrier && $this->order->shippingAddress) {
             GenerateShippingLabel::dispatch($this->order)->delay(now()->addMinutes(5));
-            
+
             Log::info('Scheduled shipping label generation', [
                 'order_id' => $this->order->id,
                 'carrier' => $this->order->carrier,
@@ -124,7 +125,7 @@ class ProcessOrderStateChange implements ShouldQueue
         if ($this->order->shippingLabels()->latest()->first()) {
             $label = $this->order->shippingLabels()->latest()->first();
             $estimatedDelivery = $label->meta['estimated_delivery'] ?? null;
-            
+
             if ($estimatedDelivery) {
                 $this->order->update([
                     'meta' => array_merge($this->order->meta ?? [], [

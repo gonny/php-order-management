@@ -71,7 +71,7 @@ class ClientWebControllerTest extends TestCase
         $response->assertInertia(function ($page) {
             $page->has('filters', function ($filters) {
                 return $filters->where('search', 'test')
-                              ->where('is_active', '1');
+                    ->where('is_active', '1');
             });
         });
     }
@@ -102,9 +102,9 @@ class ClientWebControllerTest extends TestCase
             $page->component('clients/Show')
                 ->has('client', function ($clientProp) use ($client) {
                     return $clientProp->where('id', $client->id)
-                                      ->has('orders')
-                                      ->has('addresses')
-                                      ->etc(); // Allow additional properties
+                        ->has('orders')
+                        ->has('addresses')
+                        ->etc(); // Allow additional properties
                 });
         });
     }
@@ -114,7 +114,7 @@ class ClientWebControllerTest extends TestCase
         $this->actingAs($this->user);
 
         $client = Client::factory()->create();
-        
+
         // Create more than 10 orders to test the limit
         Order::factory()->count(15)->create([
             'client_id' => $client->id,
@@ -126,7 +126,7 @@ class ClientWebControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(function ($page) {
             $page->has('client.orders')
-                 ->etc(); // Allow additional client properties
+                ->etc(); // Allow additional client properties
         });
     }
 
@@ -152,8 +152,8 @@ class ClientWebControllerTest extends TestCase
             $page->component('clients/Edit')
                 ->has('client', function ($clientProp) use ($client) {
                     return $clientProp->where('id', $client->id)
-                                      ->has('addresses')
-                                      ->etc(); // Allow additional properties
+                        ->has('addresses')
+                        ->etc(); // Allow additional properties
                 });
         });
     }
@@ -179,10 +179,10 @@ class ClientWebControllerTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(function ($page) {
             $page->has('clients.data', 15) // Should have 15 items
-                 ->has('clients.links') // Should have pagination links
-                 ->has('clients.current_page') // Alternative pagination meta
-                 ->has('clients.per_page')
-                 ->has('clients.total');
+                ->has('clients.links') // Should have pagination links
+                ->has('clients.current_page') // Alternative pagination meta
+                ->has('clients.per_page')
+                ->has('clients.total');
         });
     }
 
@@ -196,9 +196,9 @@ class ClientWebControllerTest extends TestCase
         $response = $this->get('/clients');
 
         $response->assertStatus(200);
-        $response->assertInertia(function ($page) use ($newClient, $oldClient) {
+        $response->assertInertia(function ($page) use ($newClient) {
             $clients = $page->toArray()['props']['clients']['data'];
-            
+
             // The newer client should be first
             return $clients[0]['id'] === $newClient->id;
         });

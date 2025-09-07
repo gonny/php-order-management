@@ -17,33 +17,33 @@ class WebhookController extends Controller
     public function index(Request $request)
     {
         $query = Webhook::query();
-        
+
         // Apply filters
         if ($request->filled('source')) {
             $query->where('source', $request->get('source'));
         }
-        
+
         if ($request->filled('status')) {
             $query->where('status', $request->get('status'));
         }
-        
+
         if ($request->filled('event_type')) {
             $query->where('event', $request->get('event_type'));
         }
-        
+
         if ($request->filled('related_order_id')) {
             $query->whereJsonContains('payload->order_id', $request->get('related_order_id'));
         }
-        
+
         // Apply sorting
         $sortBy = $request->get('sort', 'created_at');
         $sortDirection = $request->get('direction', 'desc');
         $query->orderBy($sortBy, $sortDirection);
-        
+
         // Paginate results
         $perPage = min($request->get('per_page', 20), 100);
         $webhooks = $query->paginate($perPage);
-        
+
         return response()->json([
             'data' => $webhooks->items(),
             'meta' => [
@@ -54,7 +54,7 @@ class WebhookController extends Controller
                 'from' => $webhooks->firstItem(),
                 'to' => $webhooks->lastItem(),
             ],
-            'message' => 'Webhooks retrieved successfully'
+            'message' => 'Webhooks retrieved successfully',
         ]);
     }
 
@@ -259,7 +259,7 @@ class WebhookController extends Controller
         // Implement Balíkovna signature validation
         // $signature = $request->header('X-Balikovna-Signature');
         // $computedSignature = hash_hmac('sha256', $request->getContent(), config('services.balikovna.webhook_secret'));
-        // 
+        //
         // if (!hash_equals($signature, $computedSignature)) {
         //     throw new \Exception('Invalid Balíkovna webhook signature');
         // }
@@ -270,7 +270,7 @@ class WebhookController extends Controller
         // Implement DPD signature validation
         // $signature = $request->header('X-DPD-Signature');
         // $computedSignature = hash_hmac('sha256', $request->getContent(), config('services.dpd.webhook_secret'));
-        // 
+        //
         // if (!hash_equals($signature, $computedSignature)) {
         //     throw new \Exception('Invalid DPD webhook signature');
         // }
@@ -281,7 +281,7 @@ class WebhookController extends Controller
         // Implement payment provider signature validation
         // $signature = $request->header('X-Payment-Signature');
         // $computedSignature = hash_hmac('sha256', $request->getContent(), config('services.payment.webhook_secret'));
-        // 
+        //
         // if (!hash_equals($signature, $computedSignature)) {
         //     throw new \Exception('Invalid payment webhook signature');
         // }

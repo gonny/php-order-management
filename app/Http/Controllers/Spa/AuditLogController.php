@@ -100,7 +100,7 @@ class AuditLogController extends Controller
             'entries_today' => AuditLog::whereDate('created_at', today())->count(),
             'entries_this_week' => AuditLog::whereBetween('created_at', [
                 now()->startOfWeek(),
-                now()->endOfWeek()
+                now()->endOfWeek(),
             ])->count(),
             'by_entity_type' => AuditLog::selectRaw('entity_type, COUNT(*) as count')
                 ->groupBy('entity_type')

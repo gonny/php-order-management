@@ -46,7 +46,7 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_job_handles_basic_state_change(): void
     {
         $order = $this->createTestOrder();
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_NEW,
@@ -90,7 +90,7 @@ class ProcessOrderStateChangeTest extends TestCase
         Queue::fake();
 
         $order = $this->createTestOrder(Order::STATUS_CONFIRMED);
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_CONFIRMED,
@@ -112,7 +112,7 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_fulfilled_order_updates_estimated_delivery(): void
     {
         $order = $this->createTestOrder(Order::STATUS_PAID);
-        
+
         // Create a shipping label with estimated delivery
         ShippingLabel::factory()->create([
             'order_id' => $order->id,
@@ -144,7 +144,7 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_completed_order_marks_delivery_time(): void
     {
         $order = $this->createTestOrder(Order::STATUS_FULFILLED);
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_FULFILLED,
@@ -166,7 +166,7 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_cancelled_order_voids_shipping_labels(): void
     {
         $order = $this->createTestOrder(Order::STATUS_PAID);
-        
+
         // Create active shipping labels
         ShippingLabel::factory()->create([
             'order_id' => $order->id,
@@ -197,7 +197,7 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_failed_order_logs_failure_reason(): void
     {
         $order = $this->createTestOrder(Order::STATUS_PAID);
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_PAID,
@@ -220,12 +220,12 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_customer_notifications_sent_for_appropriate_statuses(): void
     {
         $order = $this->createTestOrder();
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_NEW,
             Order::STATUS_CONFIRMED,
-            "Status changed to confirmed",
+            'Status changed to confirmed',
             []
         );
 
@@ -260,10 +260,10 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_job_handles_exceptions_gracefully(): void
     {
         $order = $this->createTestOrder();
-        
+
         // Force an exception by using invalid order state
         $order->status = 'invalid_status';
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             'invalid_status',
@@ -281,14 +281,14 @@ class ProcessOrderStateChangeTest extends TestCase
             ->once();
 
         $this->expectException(\Exception::class);
-        
+
         $job->handle();
     }
 
     public function test_webhook_data_includes_all_required_fields(): void
     {
         $order = $this->createTestOrder();
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_NEW,
@@ -321,14 +321,14 @@ class ProcessOrderStateChangeTest extends TestCase
                 $this->assertArrayHasKey('reason', $data);
                 $this->assertArrayHasKey('timestamp', $data);
                 $this->assertArrayHasKey('metadata', $data);
-                
+
                 $this->assertEquals($order->id, $data['order_id']);
                 $this->assertEquals($order->number, $data['order_number']);
                 $this->assertEquals(Order::STATUS_NEW, $data['previous_status']);
                 $this->assertEquals(Order::STATUS_CONFIRMED, $data['new_status']);
                 $this->assertEquals('Test webhook data', $data['reason']);
                 $this->assertEquals(['custom_field' => 'test_value'], $data['metadata']);
-                
+
                 return true;
             });
 
@@ -338,7 +338,7 @@ class ProcessOrderStateChangeTest extends TestCase
     public function test_retry_mechanism_properties(): void
     {
         $order = $this->createTestOrder();
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_NEW,
@@ -358,7 +358,7 @@ class ProcessOrderStateChangeTest extends TestCase
 
         $order = $this->createTestOrder(Order::STATUS_CONFIRMED);
         $order->update(['carrier' => null]); // Remove carrier
-        
+
         $job = new ProcessOrderStateChange(
             $order,
             Order::STATUS_CONFIRMED,
