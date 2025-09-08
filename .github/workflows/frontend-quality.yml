@@ -1,0 +1,48 @@
+name: Frontend Quality Checks
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  frontend-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Check code formatting
+      run: npm run format:check
+
+    - name: Run TypeScript checks
+      run: npm run svelte:check
+      continue-on-error: true  # Allow TypeScript errors but still report them
+
+    - name: Run Vitest tests
+      run: npm run test:run
+
+    - name: Build application
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: frontend-build
+        path: public/build/
+        retention-days: 7
