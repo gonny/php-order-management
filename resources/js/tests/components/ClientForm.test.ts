@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import ClientForm from '@/packages/clients/components/ClientForm.svelte';
 
-// Mock the Inertia hooks - need to mock the actual return value structure
+// Mock the Inertia hooks - create a simple mock that works
 const mockForm = {
   data: {
     external_id: '',
@@ -32,6 +32,7 @@ vi.mock('@inertiajs/svelte', () => ({
 describe('ClientForm Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
     // Reset form values
     Object.assign(mockForm.data, {
       external_id: '',
@@ -44,6 +45,7 @@ describe('ClientForm Component', () => {
       is_active: true,
       meta: {},
     });
+    
     Object.assign(mockForm, {
       errors: {},
       processing: false,
