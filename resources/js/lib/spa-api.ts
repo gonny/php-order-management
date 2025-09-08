@@ -293,6 +293,110 @@ export class SpaApiClient {
     await this.request<void>('DELETE', `/spa/v1/clients/${id}`);
   }
 
+  // Webhooks
+
+  async getWebhooks(filters: any = {}): Promise<PaginatedResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+
+    const queryString = params.toString();
+    const endpoint = `/spa/v1/webhooks${queryString ? `?${queryString}` : ''}`;
+    
+    return await this.request<PaginatedResponse<any>>('GET', endpoint);
+  }
+
+  async getWebhook(id: string): Promise<any> {
+    const response = await this.request<ApiResponse<any>>(
+      'GET',
+      `/spa/v1/webhooks/${id}`
+    );
+    return response.data;
+  }
+
+  async reprocessWebhook(id: string): Promise<any> {
+    const response = await this.request<ApiResponse<any>>(
+      'POST',
+      `/spa/v1/webhooks/${id}/reprocess`
+    );
+    return response.data;
+  }
+
+  // Queues
+
+  async getQueueStats(): Promise<any> {
+    const response = await this.request<ApiResponse<any>>(
+      'GET',
+      '/spa/v1/queues/stats'
+    );
+    return response.data;
+  }
+
+  async getFailedJobs(filters: any = {}): Promise<PaginatedResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+
+    const queryString = params.toString();
+    const endpoint = `/spa/v1/queues/failed${queryString ? `?${queryString}` : ''}`;
+    
+    return await this.request<PaginatedResponse<any>>('GET', endpoint);
+  }
+
+  async getRecentJobs(): Promise<any[]> {
+    const response = await this.request<ApiResponse<any[]>>(
+      'GET',
+      '/spa/v1/queues/recent'
+    );
+    return response.data;
+  }
+
+  async retryFailedJob(jobId: string): Promise<void> {
+    await this.request<void>('POST', `/spa/v1/queues/failed/${jobId}/retry`);
+  }
+
+  async deleteFailedJob(jobId: string): Promise<void> {
+    await this.request<void>('DELETE', `/spa/v1/queues/failed/${jobId}`);
+  }
+
+  // Audit Logs
+
+  async getAuditLogs(filters: any = {}): Promise<PaginatedResponse<any>> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+
+    const queryString = params.toString();
+    const endpoint = `/spa/v1/audit-logs${queryString ? `?${queryString}` : ''}`;
+    
+    return await this.request<PaginatedResponse<any>>('GET', endpoint);
+  }
+
+  async getAuditLogStats(): Promise<any> {
+    const response = await this.request<ApiResponse<any>>(
+      'GET',
+      '/spa/v1/audit-logs/stats'
+    );
+    return response.data;
+  }
+
+  async getOrderAuditLogs(orderId: string): Promise<any[]> {
+    const response = await this.request<ApiResponse<any[]>>(
+      'GET',
+      `/spa/v1/orders/${orderId}/audit-logs`
+    );
+    return response.data;
+  }
+
   // Generic HTTP methods for flexibility
   async get<T = any>(endpoint: string): Promise<T> {
     return this.request<T>('GET', endpoint);

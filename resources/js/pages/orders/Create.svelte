@@ -86,7 +86,7 @@
     }
 
     function handleSubmit() {
-        form.post('/api/v1/orders', {
+        form.post('/spa/v1/orders', {
             onSuccess: () => {
                 router.visit('/orders');
             }

@@ -92,7 +92,7 @@
     }
 
     function handleSubmit() {
-        form.patch(`/api/v1/orders/${order.id}`, {
+        form.patch(`/spa/v1/orders/${order.id}`, {
             onSuccess: () => {
                 router.visit(`/orders/${order.id}`);
             }

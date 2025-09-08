@@ -275,8 +275,8 @@ export interface ClientFilters {
 }
 
 export interface WebhookFilters {
-  source?: WebhookSource[];
-  status?: WebhookStatus[];
+  source?: string;
+  status?: string;
   event_type?: string;
   date_from?: string;
   date_to?: string;

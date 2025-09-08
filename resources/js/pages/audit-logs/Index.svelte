@@ -12,7 +12,6 @@
     import { RefreshCw, Filter, FileText, User, Activity, Clock } from 'lucide-svelte';
     import { onMount } from 'svelte';
     import { spaApiClient } from '@/lib/spa-api';
-    import { SvelteURLSearchParams } from 'svelte/reactivity';
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -55,14 +54,16 @@
     async function loadAuditLogs() {
         isLoading = true;
         try {
-            const params = new SvelteURLSearchParams();
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value) params.append(key, value.toString());
-            });
-
-            const response = await spaApiClient.get(`/audit-logs?${params.toString()}`);
+            const response = await spaApiClient.getAuditLogs(filters);
             auditLogs = response.data;
-            meta = response.meta;
+            meta = {
+                current_page: response.current_page,
+                per_page: response.per_page,
+                total: response.total,
+                last_page: response.last_page,
+                from: response.from,
+                to: response.to
+            };
         } catch (error) {
             console.error('Failed to load audit logs:', error);
         } finally {
@@ -72,8 +73,8 @@
 
     async function loadStats() {
         try {
-            const response = await spaApiClient.get('/audit-logs/stats');
-            stats = response.data;
+            const response = await spaApiClient.getAuditLogStats();
+            stats = response;
         } catch (error) {
             console.error('Failed to load audit log stats:', error);
         }

@@ -32,7 +32,7 @@
         if (!$clientQuery.data) return;
         
         if (confirm('Are you sure you want to delete this client? This action cannot be undone.')) {
-            router.delete(`/api/v1/clients/${clientId}`, {
+            router.delete(`/spa/v1/clients/${clientId}`, {
                 onSuccess: () => {
                     router.visit('/clients');
                 }

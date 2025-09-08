@@ -1,5 +1,5 @@
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { apiClient, handleApiError } from '@/lib/api';
+import { spaApiClient, handleSpaApiError } from '@/lib/spa-api';
 import type {
   WebhookFilters,
 } from '@/types';
@@ -17,7 +17,7 @@ export const webhookKeys = {
 export function useWebhooks(filters: WebhookFilters = {}) {
   return createQuery({
     queryKey: webhookKeys.list(filters),
-    queryFn: () => apiClient.getWebhooks(filters),
+    queryFn: () => spaApiClient.getWebhooks(filters),
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
@@ -25,7 +25,7 @@ export function useWebhooks(filters: WebhookFilters = {}) {
 export function useWebhook(id: string) {
   return createQuery({
     queryKey: webhookKeys.detail(id),
-    queryFn: () => apiClient.getWebhook(id),
+    queryFn: () => spaApiClient.getWebhook(id),
     enabled: !!id,
     staleTime: 1000 * 60 * 1, // 1 minute
   });
@@ -36,14 +36,14 @@ export function useReprocessWebhook() {
   const queryClient = useQueryClient();
   
   return createMutation({
-    mutationFn: (id: string) => apiClient.reprocessWebhook(id),
+    mutationFn: (id: string) => spaApiClient.reprocessWebhook(id),
     onSuccess: (_, id) => {
       // Invalidate the specific webhook and the list
       queryClient.invalidateQueries({ queryKey: webhookKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: webhookKeys.lists() });
     },
     onError: (error) => {
-      console.error('Failed to reprocess webhook:', handleApiError(error));
+      console.error('Failed to reprocess webhook:', handleSpaApiError(error));
     },
   });
 }

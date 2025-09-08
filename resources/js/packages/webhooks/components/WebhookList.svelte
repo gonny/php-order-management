@@ -1,6 +1,6 @@
 <script lang="ts">
     import { useWebhooks, useReprocessWebhook } from '../hooks/use-webhooks';
-    import type { WebhookFilters } from '@/types';
+    import type { WebhookFilters, Webhook } from '@/types';
     import * as Card from '@/components/ui/card';
     import * as Dialog from '@/components/ui/dialog';
     import * as Table from '@/components/ui/table';
@@ -57,7 +57,7 @@
     ];
 
     // Dialog state
-    let selectedWebhook = $state(null);
+    let selectedWebhook: Webhook | null = $state(null);
     let dialogOpen = $state(false);
     let copiedPayload = $state(false);
 

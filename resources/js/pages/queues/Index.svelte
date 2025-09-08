@@ -53,15 +53,15 @@
         // Update frontend components use spaApiClient for authenticated API calls
         try {
             // Load queue statistics
-            const statsResponse = await spaApiClient.get('/api/v1/queues/stats');
-            stats = statsResponse.data;
+            const statsResponse = await spaApiClient.getQueueStats();
+            stats = statsResponse;
 
             // Load recent jobs
-            const recentResponse = await spaApiClient.get('/api/v1/queues/recent');
-            recentJobs = recentResponse.data;
+            const recentResponse = await spaApiClient.getRecentJobs();
+            recentJobs = recentResponse;
 
             // Load failed jobs
-            const failedResponse = await spaApiClient.get('/api/v1/queues/failed');
+            const failedResponse = await spaApiClient.getFailedJobs();
             failedJobs = failedResponse.data;
         } catch (error) {
             console.error('Failed to load queue data:', error);
@@ -72,7 +72,7 @@
 
     async function retryJob(jobId: string) {
         try {
-            await spaApiClient.post(`/api/v1/queues/failed/${jobId}/retry`);
+            await spaApiClient.retryFailedJob(jobId);
             loadData(); // Refresh data
         } catch (error) {
             console.error('Failed to retry job:', error);
@@ -82,7 +82,7 @@
     async function deleteJob(jobId: string) {
         if (confirm('Are you sure you want to delete this failed job?')) {
             try {
-                await spaApiClient.delete(`/api/v1/queues/failed/${jobId}`);
+                await spaApiClient.deleteFailedJob(jobId);
                 loadData(); // Refresh data
             } catch (error) {
                 console.error('Failed to delete job:', error);
@@ -93,7 +93,8 @@
     async function clearAllFailedJobs() {
         if (confirm('Are you sure you want to clear all failed jobs? This action cannot be undone.')) {
             try {
-                await spaApiClient.delete('/api/v1/queues/failed');
+                // This would need to be implemented in the backend
+                await spaApiClient.delete('/spa/v1/queues/failed');
                 loadData(); // Refresh data
             } catch (error) {
                 console.error('Failed to clear failed jobs:', error);

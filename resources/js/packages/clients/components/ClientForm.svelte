@@ -32,13 +32,13 @@
 
     function handleSubmit() {
         if (mode === 'create') {
-            form.post('/api/v1/clients', {
+            form.post('/spa/v1/clients', {
                 onSuccess: () => {
                     router.visit('/clients');
                 }
             });
         } else {
-            form.put(`/api/v1/clients/${client?.id}`, {
+            form.put(`/spa/v1/clients/${client?.id}`, {
                 onSuccess: () => {
                     router.visit('/clients');
                 }
