@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Order CRUD Operations', () => {
-  let testClientId;
-  
   test.beforeEach(async ({ page }) => {
     // Navigate to the application
     await page.goto('/');

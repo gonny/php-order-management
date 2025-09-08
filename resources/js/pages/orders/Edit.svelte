@@ -17,18 +17,18 @@
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Orders', href: '/orders' },
-        { title: `Order #${order.order_number}`, href: `/orders/${order.id}` },
-        { title: 'Edit', href: `/orders/${order.id}/edit` },
+        { title: `Order #${order?.order_number || 'Unknown'}`, href: `/orders/${order?.id}` },
+        { title: 'Edit', href: `/orders/${order?.id}/edit` },
     ];
 
     // Initialize form with order data
     let form = useForm({
-        client_id: order.client_id || '',
-        status: order.status || 'new',
-        total_amount: order.total_amount || 0,
-        currency: order.currency || 'CZK',
-        notes: order.notes || '',
-        items: order.items || [{ 
+        client_id: order?.client_id || '',
+        status: order?.status || 'new',
+        total_amount: order?.total_amount || 0,
+        currency: order?.currency || 'CZK',
+        notes: order?.notes || '',
+        items: order?.items || [{ 
             id: null,
             name: '', 
             description: '', 
@@ -36,7 +36,7 @@
             unit_price: 0, 
             total_price: 0 
         }],
-        shipping_address: order.shipping_address || {
+        shipping_address: order?.shipping_address || {
             street: '',
             city: '',
             postal_code: '',
@@ -47,7 +47,7 @@
             phone: '',
             email: ''
         },
-        billing_address: order.billing_address || {
+        billing_address: order?.billing_address || {
             street: '',
             city: '',
             postal_code: '',
@@ -92,6 +92,8 @@
     }
 
     function handleSubmit() {
+        if (!order?.id) return;
+        
         form.patch(`/spa/v1/orders/${order.id}`, {
             onSuccess: () => {
                 router.visit(`/orders/${order.id}`);
@@ -108,13 +110,13 @@
                 <Button 
                     variant="ghost" 
                     size="sm" 
-                    onclick={() => router.visit(`/orders/${order.id}`)}
+                    onclick={() => router.visit(`/orders/${order?.id || ''}`)}
                 >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back to Order
                 </Button>
                 <div>
-                    <h1 class="text-2xl font-bold">Edit Order #{order.order_number}</h1>
+                    <h1 class="text-2xl font-bold">Edit Order #{order?.order_number || 'Unknown'}</h1>
                     <p class="text-muted-foreground">Update order information</p>
                 </div>
             </div>
@@ -361,7 +363,7 @@
 
             <!-- Actions -->
             <div class="flex justify-end gap-4">
-                <Button type="button" variant="outline" onclick={() => router.visit(`/orders/${order.id}`)}>
+                <Button type="button" variant="outline" onclick={() => router.visit(`/orders/${order?.id || ''}`)}>
                     Cancel
                 </Button>
                 <Button type="submit" disabled={form.processing}>

@@ -20,7 +20,7 @@
     let breadcrumbs = $derived($clientQuery.data ? [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Clients', href: '/clients' },
-        { title: $clientQuery.data.first_name + ' ' + $clientQuery.data.last_name, href: `/clients/${clientId}` },
+        { title: ($clientQuery.data.first_name || '') + ' ' + ($clientQuery.data.last_name || ''), href: `/clients/${clientId}` },
         { title: 'Edit', href: `/clients/${clientId}/edit` },
     ] as BreadcrumbItem[] : [
         { title: 'Dashboard', href: '/dashboard' },
@@ -77,7 +77,7 @@
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold">Edit Client: {client.first_name} {client.last_name}</h1>
+                    <h1 class="text-2xl font-bold">Edit Client: {client.first_name || ''} {client.last_name || ''}</h1>
                     <p class="text-muted-foreground">Update client information</p>
                 </div>
                 <Button 
