@@ -6,6 +6,7 @@
 
 ## How to run in dev mode
 - Application frontend is secured by Laravel Sanctum. You have to have allowed domain in `SANCTUM_STATEFUL_DOMAINS`. Eg: `localhost:8080,localhost:5173`.
+- Run database migrations and seeders: `php artisan migrate:fresh --seed`. This will also create test user 'text@example.com' with password 'Passw0rd1!'.
 - Run application backend: `php artisan serve -host=127.0.0.1  --port=8000`
 - Run application frontend: `npm run dev --host`
 
