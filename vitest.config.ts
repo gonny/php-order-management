@@ -6,11 +6,17 @@ export default defineConfig({
   plugins: [svelte({ hot: !process.env.VITEST })],
   test: {
     globals: true,
-    environment: 'happy-dom',
-    include: ['resources/js/**/*.{test,spec}.{js,ts}'],
+    environment: 'jsdom',
+    include: ['resources/js/**/*.{test,spec}.{js,ts,svelte}'],
     setupFiles: ['resources/js/tests/setup.ts'],
   },
-  resolve: {
+  resolve: process.env.VITEST ? {
+    conditions: ['browser'],
+    alias: {
+      '@': path.resolve(__dirname, './resources/js'),
+      '$lib': path.resolve(__dirname, './resources/js/lib'),
+    },
+  } : {
     alias: {
       '@': path.resolve(__dirname, './resources/js'),
       '$lib': path.resolve(__dirname, './resources/js/lib'),
