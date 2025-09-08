@@ -10,6 +10,9 @@ on:
     - '!composer.json'
     - '!composer.lock'
     - '\.*'
+    - '.github/**'
+    - '.devcontainer/**'
+    - '.vscode/**'
 
   workflow_call:
     inputs:
