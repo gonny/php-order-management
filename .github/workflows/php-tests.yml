@@ -1,18 +1,18 @@
 name: PHP Tests and Quality
 
 on:
-  pull_request:
-    # branches: [ main, master, develop ]
-    paths-ignore:
-    - 'resources/**'
-    - 'public/**'
-    - '/*'
-    - '!composer.json'
-    - '!composer.lock'
-    - '\.*'
-    - '.github/**'
-    - '.devcontainer/**'
-    - '.vscode/**'
+  # pull_request:
+  #   # branches: [ main, master, develop ]
+  #   paths-ignore:
+  #   - 'resources/**'
+  #   - 'public/**'
+  #   - '/*'
+  #   - '!composer.json'
+  #   - '!composer.lock'
+  #   - '\.*'
+  #   - '.github/**'
+  #   - '.devcontainer/**'
+  #   - '.vscode/**'
 
   workflow_call:
     inputs:
