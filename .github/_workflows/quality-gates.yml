@@ -27,24 +27,24 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
+        cache: 'yarn'
 
     - name: Install frontend dependencies
-      run: npm ci
+      run: yarn install --frozen-lockfile
 
     - name: Frontend - ESLint (must pass)
-      run: npm run lint
+      run: yarn run lint
 
     - name: Frontend - TypeScript check (informational)
-      run: npm run svelte:check || echo "TypeScript errors found but not blocking"
+      run: yarn run svelte:check || echo "TypeScript errors found but not blocking"
       continue-on-error: true
 
     - name: Frontend - Code formatting check
-      run: npm run format:check
+      run: yarn run format:check
 
     - name: Frontend - Build check
-      run: npm run build
+      run: yarn run build
 
     # Backend Quality Gates
     - name: Setup PHP
