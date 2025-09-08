@@ -5,15 +5,17 @@ import ClientForm from '@/packages/clients/components/ClientForm.svelte';
 
 // Mock the Inertia hooks - need to mock the actual return value structure
 const mockForm = {
-  external_id: '',
-  email: '',
-  phone: '',
-  first_name: '',
-  last_name: '',
-  company: '',
-  vat_id: '',
-  is_active: true,
-  meta: {},
+  data: {
+    external_id: '',
+    email: '',
+    phone: '',
+    first_name: '',
+    last_name: '',
+    company: '',
+    vat_id: '',
+    is_active: true,
+    meta: {},
+  },
   errors: {},
   processing: false,
   post: vi.fn(),
@@ -31,7 +33,7 @@ describe('ClientForm Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset form values
-    Object.assign(mockForm, {
+    Object.assign(mockForm.data, {
       external_id: '',
       email: '',
       phone: '',
@@ -41,6 +43,8 @@ describe('ClientForm Component', () => {
       vat_id: '',
       is_active: true,
       meta: {},
+    });
+    Object.assign(mockForm, {
       errors: {},
       processing: false,
     });
@@ -77,7 +81,7 @@ describe('ClientForm Component', () => {
     };
 
     // Set up the form to use client data
-    Object.assign(mockForm, {
+    Object.assign(mockForm.data, {
       external_id: mockClient.external_id,
       email: mockClient.email,
       phone: mockClient.phone,
