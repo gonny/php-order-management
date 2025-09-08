@@ -44,26 +44,26 @@
     });
 
     // Sync reactive state to Inertia form
-    $effect(() => {
-        if (inertiaForm?.data && formData) {
-            Object.assign(inertiaForm.data, formData);
-        }
-    });
+    // $effect(() => {
+    //     if (inertiaForm?.data && formData) {
+    //         Object.assign(inertiaForm.data, formData);
+    //     }
+    // });
 
     function handleSubmit(event: Event) {
         event.preventDefault();
-        
+
         if (mode === 'create') {
-            inertiaForm.post('/spa/v1/clients', {
+            $inertiaForm.post('/spa/v1/clients', {
                 onSuccess: () => {
                     router.visit('/clients');
-                }
+                },
             });
         } else if (client?.id) {
-            inertiaForm.put(`/spa/v1/clients/${client.id}`, {
+            $inertiaForm.post(`/spa/v1/clients/${client.id}`, {
                 onSuccess: () => {
                     router.visit('/clients');
-                }
+                },
             });
         }
     }
@@ -75,6 +75,8 @@
             router.visit('/clients');
         }
     }
+
+    console.log('Inertia Form Data:', $inertiaForm);
 
     let isSubmitting = $derived(inertiaForm.processing);
 </script>
@@ -90,57 +92,33 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
                     <Label for="first_name">First Name *</Label>
-                    <Input 
-                        id="first_name" 
-                        bind:value={formData.first_name}
-                        placeholder="Enter first name"
-                        required
-                        disabled={isSubmitting}
-                    />
-                    {#if inertiaForm.errors.first_name}
-                        <p class="text-sm text-red-600">{inertiaForm.errors.first_name}</p>
+                    <Input id="first_name" bind:value={formData.first_name} placeholder="Enter first name" required disabled={isSubmitting} />
+                    {#if inertiaForm.errors?.first_name}
+                        <p class="text-sm text-red-600">{inertiaForm.errors?.first_name}</p>
                     {/if}
                 </div>
                 <div class="space-y-2">
                     <Label for="last_name">Last Name *</Label>
-                    <Input 
-                        id="last_name" 
-                        bind:value={formData.last_name}
-                        placeholder="Enter last name"
-                        required
-                        disabled={isSubmitting}
-                    />
-                    {#if inertiaForm.errors.last_name}
-                        <p class="text-sm text-red-600">{inertiaForm.errors.last_name}</p>
+                    <Input id="last_name" bind:value={formData.last_name} placeholder="Enter last name" required disabled={isSubmitting} />
+                    {#if inertiaForm.errors?.last_name}
+                        <p class="text-sm text-red-600">{inertiaForm.errors?.last_name}</p>
                     {/if}
                 </div>
             </div>
 
             <div class="space-y-2">
                 <Label for="email">Email Address *</Label>
-                <Input 
-                    id="email" 
-                    type="email"
-                    bind:value={formData.email}
-                    placeholder="Enter email address"
-                    required
-                    disabled={isSubmitting}
-                />
-                {#if inertiaForm.errors.email}
-                    <p class="text-sm text-red-600">{inertiaForm.errors.email}</p>
+                <Input id="email" type="email" bind:value={formData.email} placeholder="Enter email address" required disabled={isSubmitting} />
+                {#if inertiaForm.errors?.email}
+                    <p class="text-sm text-red-600">{inertiaForm.errors?.email}</p>
                 {/if}
             </div>
 
             <div class="space-y-2">
                 <Label for="phone">Phone Number</Label>
-                <Input 
-                    id="phone" 
-                    bind:value={formData.phone}
-                    placeholder="Enter phone number"
-                    disabled={isSubmitting}
-                />
-                {#if inertiaForm.errors.phone}
-                    <p class="text-sm text-red-600">{inertiaForm.errors.phone}</p>
+                <Input id="phone" bind:value={formData.phone} placeholder="Enter phone number" disabled={isSubmitting} />
+                {#if inertiaForm.errors?.phone}
+                    <p class="text-sm text-red-600">{inertiaForm.errors?.phone}</p>
                 {/if}
             </div>
         </Card.Content>
@@ -155,27 +133,17 @@
         <Card.Content class="space-y-4">
             <div class="space-y-2">
                 <Label for="company">Company Name</Label>
-                <Input 
-                    id="company" 
-                    bind:value={formData.company}
-                    placeholder="Enter company name"
-                    disabled={isSubmitting}
-                />
-                {#if inertiaForm.errors.company}
-                    <p class="text-sm text-red-600">{inertiaForm.errors.company}</p>
+                <Input id="company" bind:value={formData.company} placeholder="Enter company name" disabled={isSubmitting} />
+                {#if inertiaForm.errors?.company}
+                    <p class="text-sm text-red-600">{inertiaForm.errors?.company}</p>
                 {/if}
             </div>
 
             <div class="space-y-2">
                 <Label for="vat_id">VAT ID</Label>
-                <Input 
-                    id="vat_id" 
-                    bind:value={formData.vat_id}
-                    placeholder="Enter VAT identification number"
-                    disabled={isSubmitting}
-                />
-                {#if inertiaForm.errors.vat_id}
-                    <p class="text-sm text-red-600">{inertiaForm.errors.vat_id}</p>
+                <Input id="vat_id" bind:value={formData.vat_id} placeholder="Enter VAT identification number" disabled={isSubmitting} />
+                {#if inertiaForm.errors?.vat_id}
+                    <p class="text-sm text-red-600">{inertiaForm.errors?.vat_id}</p>
                 {/if}
             </div>
         </Card.Content>
@@ -190,48 +158,31 @@
         <Card.Content class="space-y-4">
             <div class="space-y-2">
                 <Label for="external_id">External ID</Label>
-                <Input 
-                    id="external_id" 
-                    bind:value={formData.external_id}
-                    placeholder="Enter external system ID"
-                    disabled={isSubmitting}
-                />
-                {#if inertiaForm.errors.external_id}
-                    <p class="text-sm text-red-600">{inertiaForm.errors.external_id}</p>
+                <Input id="external_id" bind:value={formData.external_id} placeholder="Enter external system ID" disabled={isSubmitting} />
+                {#if inertiaForm.errors?.external_id}
+                    <p class="text-sm text-red-600">{inertiaForm.errors?.external_id}</p>
                 {/if}
             </div>
 
             <div class="flex items-center space-x-2">
-                <Checkbox 
-                    id="is_active" 
-                    bind:checked={formData.is_active}
-                    disabled={isSubmitting}
-                />
+                <Checkbox id="is_active" bind:checked={formData.is_active} disabled={isSubmitting} />
                 <Label for="is_active" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Active Client
                 </Label>
             </div>
-            {#if inertiaForm.errors.is_active}
-                <p class="text-sm text-red-600">{inertiaForm.errors.is_active}</p>
+            {#if inertiaForm.errors?.is_active}
+                <p class="text-sm text-red-600">{inertiaForm.errors?.is_active}</p>
             {/if}
         </Card.Content>
     </Card.Root>
 
     <!-- Form Actions -->
     <div class="flex justify-end space-x-4">
-        <Button 
-            type="button" 
-            variant="outline" 
-            onclick={handleCancel}
-            disabled={isSubmitting}
-        >
+        <Button type="button" variant="outline" onclick={handleCancel} disabled={isSubmitting}>
             <ArrowLeft class="h-4 w-4 mr-2" />
             Cancel
         </Button>
-        <Button 
-            type="submit" 
-            disabled={isSubmitting}
-        >
+        <Button type="submit" disabled={isSubmitting}>
             <Save class="h-4 w-4 mr-2" />
             {mode === 'create' ? 'Create Client' : 'Save Changes'}
         </Button>
