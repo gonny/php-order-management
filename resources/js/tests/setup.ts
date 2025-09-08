@@ -18,6 +18,12 @@ vi.mock('@inertiajs/svelte', () => ({
     patch: vi.fn(),
     delete: vi.fn(),
   })),
+  page: vi.fn(() => ({
+    component: 'Test',
+    props: {},
+    url: '/test',
+    version: '1',
+  })),
 }));
 
 // Mock the SPA API client
