@@ -3,6 +3,14 @@ name: PHP Tests and Quality
 on:
   pull_request:
     branches: [ main, master, develop ]
+    paths-ignore:
+    - 'resources/**'
+    - 'public/**'
+    - '/*'
+    - '!composer.json'
+    - '!composer.lock'
+    - '\.*'
+
   workflow_call:
     inputs:
       php_version:

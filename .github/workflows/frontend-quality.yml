@@ -3,6 +3,13 @@ name: Frontend Quality Checks
 on:
   pull_request:
     branches: [ main, master, develop ]
+    paths:
+      - 'resources/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'tsconfig.json'
+      - 'vite.config.js'
+      - 'svelte.config.js'
 
   workflow_call:
     inputs:
