@@ -2,7 +2,7 @@ name: Frontend Quality Checks
 
 on:
   pull_request:
-    branches: [ main, master, develop ]
+    # branches: [ main, master, develop ]
     paths:
       - 'resources/**'
       - 'package.json'
@@ -10,6 +10,13 @@ on:
       - 'tsconfig.json'
       - 'vite.config.js'
       - 'svelte.config.js'
+    paths-ignore:
+      - 'public/**'
+      - '/*'
+      - '\.*'
+      - '.github/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
 
   workflow_call:
     inputs:

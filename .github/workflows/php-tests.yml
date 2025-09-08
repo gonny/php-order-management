@@ -2,7 +2,7 @@ name: PHP Tests and Quality
 
 on:
   pull_request:
-    branches: [ main, master, develop ]
+    # branches: [ main, master, develop ]
     paths-ignore:
     - 'resources/**'
     - 'public/**'
