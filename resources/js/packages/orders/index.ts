@@ -5,6 +5,7 @@
 export type {
   Order,
   OrderItem,
+  OrderItemForm,
   OrderStatus,
   OrderTransition,
   OrderCreateDTO,
@@ -80,6 +81,7 @@ export {
 } from './stores/order-filters.svelte';
 
 // Components will be exported as they are created
+export { default as OrderForm } from './components/OrderForm.svelte';
 // export { default as OrderList } from './components/OrderList.svelte';
 // export { default as OrderDetails } from './components/OrderDetails.svelte';
 // export { default as OrderStatusBadge } from './components/OrderStatusBadge.svelte';

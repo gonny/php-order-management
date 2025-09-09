@@ -41,11 +41,25 @@ export interface OrderItem extends BaseEntity {
 }
 
 export interface OrderItemCreateDTO {
-  sku: string;
+  sku?: string;
   name: string;
+  description?: string;
   qty: number;
+  quantity?: number; // For form compatibility
   price: number;
-  tax_rate: number;
+  unit_price?: number; // For form compatibility
+  total_price?: number; // For form compatibility  
+  tax_rate?: number;
+}
+
+// Form-specific interface for better UX
+export interface OrderItemForm {
+  id?: string;
+  name: string;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
 }
 
 export interface Order extends BaseEntity {

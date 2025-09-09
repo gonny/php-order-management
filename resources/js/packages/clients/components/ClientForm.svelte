@@ -57,7 +57,6 @@
         }
     }
 
-    let formStore = $derived($form);
     let isSubmitting = $derived($form.processing);
     console.log(errors ?? "no errors");
 </script>
