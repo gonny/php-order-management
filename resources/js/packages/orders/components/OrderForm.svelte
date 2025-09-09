@@ -9,6 +9,7 @@
     import { Save, ArrowLeft, Plus, X } from 'lucide-svelte';
     import { router } from '@inertiajs/svelte';
     import { useForm } from '@inertiajs/svelte';
+    import orders from '@/routes/spa/orders';
 
     interface Props {
         order?: Order;
@@ -93,13 +94,13 @@
         event.preventDefault();
 
         if (mode === 'create') {
-            $form.post('/spa/v1/orders', {
+            $form.post(orders.store().url, {
                 onSuccess: () => {
                     router.visit('/orders');
                 },
             });
         } else if (order?.id) {
-            $form.put(`/spa/v1/orders/${order.id}`, {
+            $form.put(orders.update(order.id).url, {
                 onSuccess: () => {
                     router.visit('/orders');
                 },
