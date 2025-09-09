@@ -16,9 +16,9 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         $userProps = [
             'name' => 'Test User',
-            'email' => 'test@example.com'
+            'email' => 'test@example.com',
         ];
-        if (env('APP_ENV') != "production") {
+        if (env('APP_ENV') != 'production') {
             $userProps['password'] = bcrypt('Passw0rd1!');
         }
         User::factory()->create($userProps);

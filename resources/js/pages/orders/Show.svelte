@@ -150,7 +150,7 @@
                         Back
                     </Button>
                     <div>
-                        <h2 class="text-3xl font-bold tracking-tight">Order #{order.number}</h2>
+                        <h2 class="text-3xl font-bold tracking-tight">Order #{order.order_number || order.number || orderId}</h2>
                         <p class="text-muted-foreground">
                             Created {formatDateTime(order.created_at)}
                         </p>

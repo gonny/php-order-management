@@ -42,8 +42,8 @@
         direction: 'desc',
     });
 
-    // Get orders using TanStack Query - make it reactive
-    let ordersQuery = $derived(useOrders(filtersStore.filters));
+    // Get orders using TanStack Query - FIXED: use stable reference
+    const ordersQuery = useOrders(filtersStore.filters);
 
     // Status options
     const statusOptions = [
@@ -62,23 +62,8 @@
         { value: 'dpd', label: 'DPD' },
     ];
 
-    // Local reactive variables for form inputs
-    let searchValue = $state(filtersStore.filters.search || '');
-    let statusValue = $state(filtersStore.filters.status || []);
-    let carrierValue = $state(filtersStore.filters.carrier || []);
-
-    // Update store when inputs change
-    $effect(() => {
-        filtersStore.setSearch(searchValue);
-    });
-
-    $effect(() => {
-        filtersStore.setStatus(statusValue);
-    });
-
-    $effect(() => {
-        filtersStore.setCarrier(carrierValue);
-    });
+    // FIXED: Use direct form inputs that update filters immediately
+    // Remove reactive loops by not using $effect blocks
 
     function formatDateTime(dateString: string): string {
         return new Intl.DateTimeFormat('en-US', {
@@ -133,9 +118,6 @@
 
     function clearFilters() {
         filtersStore.clearFilters();
-        searchValue = '';
-        statusValue = [];
-        carrierValue = [];
         navigateToOrders();
     }
 
@@ -161,10 +143,10 @@
                 <Button
                     variant="outline"
                     size="sm"
-                    onclick={() => $ordersQuery.refetch()}
-                    disabled={$ordersQuery.isFetching}
+                    onclick={() => ordersQuery.refetch()}
+                    disabled={ordersQuery.isFetching}
                 >
-                    <RefreshCw class="mr-2 h-4 w-4 {$ordersQuery.isFetching ? 'animate-spin' : ''}" />
+                    <RefreshCw class="mr-2 h-4 w-4 {ordersQuery.isFetching ? 'animate-spin' : ''}" />
                     Refresh
                 </Button>
                 <Button onclick={navigateToCreateOrder}>
@@ -189,9 +171,10 @@
                             <Input
                                 id="search"
                                 placeholder="Order number, PMI ID..."
-                                bind:value={searchValue}
+                                value={filtersStore.filters.search || ''}
                                 class="pl-8"
                                 onkeydown={(e) => e.key === 'Enter' && handleSearch()}
+                                oninput={(e) => filtersStore.setSearch(e.target.value)}
                             />
                         </div>
                     </div>
@@ -199,9 +182,19 @@
                     <!-- Status Filter -->
                     <div class="space-y-2">
                         <Label for="status">Status</Label>
-                        <Select.Root type="single">
+                        <Select.Root 
+                            type="single" 
+                            value={filtersStore.filters.status?.[0] || ''}
+                            onSelectedChange={(selected) => {
+                                if (selected?.value) {
+                                    filtersStore.setStatus([selected.value]);
+                                } else {
+                                    filtersStore.setStatus([]);
+                                }
+                            }}
+                        >
                             <Select.Trigger>
-                                <span>Select status...</span>
+                                <Select.Value placeholder="Select status..." />
                             </Select.Trigger>
                             <Select.Content>
                                 {#each statusOptions as option (option.value)}
@@ -216,9 +209,19 @@
                     <!-- Carrier Filter -->
                     <div class="space-y-2">
                         <Label for="carrier">Carrier</Label>
-                        <Select.Root type="single">
+                        <Select.Root 
+                            type="single"
+                            value={filtersStore.filters.carrier?.[0] || ''}
+                            onSelectedChange={(selected) => {
+                                if (selected?.value) {
+                                    filtersStore.setCarrier([selected.value]);
+                                } else {
+                                    filtersStore.setCarrier([]);
+                                }
+                            }}
+                        >
                             <Select.Trigger>
-                                <span>Select carrier...</span>
+                                <Select.Value placeholder="Select carrier..." />
                             </Select.Trigger>
                             <Select.Content>
                                 {#each carrierOptions as option (option.value)}
@@ -250,7 +253,7 @@
         <!-- Orders Table -->
         <Card.Root>
             <Card.Content class="p-0">
-                {#if $ordersQuery.isLoading}
+                {#if ordersQuery.isLoading}
                     <!-- Loading state -->
                     <div class="p-6">
                         <div class="space-y-4">
@@ -268,22 +271,22 @@
                             {/each}
                         </div>
                     </div>
-                {:else if $ordersQuery.error}
+                {:else if ordersQuery.error}
                     <!-- Error state -->
                     <div class="p-6 text-center">
                         <p class="text-red-600 dark:text-red-400">
-                            {$ordersQuery.error?.message || 'Failed to load orders'}
+                            {ordersQuery.error?.message || 'Failed to load orders'}
                         </p>
                         <Button 
                             class="mt-4" 
                             variant="outline" 
-                            onclick={() => $ordersQuery.refetch()}
+                            onclick={() => ordersQuery.refetch()}
                         >
                             Try Again
                         </Button>
                     </div>
-                {:else if $ordersQuery.data}
-                    {@const ordersData = $ordersQuery.data}
+                {:else if ordersQuery.data}
+                    {@const ordersData = ordersQuery.data}
                     
                     <Table.Root>
                         <Table.Header>

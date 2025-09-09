@@ -1,0 +1,96 @@
+name: PHP Tests and Quality
+
+on:
+  # pull_request:
+  #   # branches: [ main, master, develop ]
+  #   paths-ignore:
+  #   - 'resources/**'
+  #   - 'public/**'
+  #   - '/*'
+  #   - '!composer.json'
+  #   - '!composer.lock'
+  #   - '\.*'
+  #   - '.github/**'
+  #   - '.devcontainer/**'
+  #   - '.vscode/**'
+
+  workflow_call:
+    inputs:
+      php_version:
+        description: 'PHP version to use'
+        required: false
+        default: '8.3'
+        type: string
+
+jobs:
+  php-tests:
+    runs-on: ubuntu-latest
+    name: PHP Testing & Quality
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: php_order_management_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php_version }}
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_mysql, bcmath, soap, intl, gd, exif, iconv
+        coverage: xdebug
+
+    - name: Get composer cache directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Copy environment file
+      run: cp .env.example .env
+
+    - name: Generate application key
+      run: php artisan key:generate
+
+    - name: Configure database
+      run: |
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=127.0.0.1" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=php_order_management_test" >> .env
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=password" >> .env
+
+    - name: Run database migrations
+      run: php artisan migrate --force
+
+    - name: Run Laravel Pint (code style)
+      run: ./vendor/bin/pint --test
+
+    - name: Run PHPUnit tests
+      run: php artisan test --coverage --min=80
+      env:
+        DB_DATABASE: php_order_management_test
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: always()
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false

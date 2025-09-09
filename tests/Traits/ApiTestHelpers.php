@@ -8,6 +8,7 @@ use Illuminate\Testing\TestResponse;
 trait ApiTestHelpers
 {
     protected ApiClient $apiClient;
+
     protected string $secret;
 
     /**
@@ -16,7 +17,7 @@ trait ApiTestHelpers
     protected function setUpApiClient(): void
     {
         $this->secret = 'test-secret-key-for-hmac-authentication';
-        
+
         $this->apiClient = ApiClient::factory()->create([
             'key_id' => 'test-client-key',
             'secret_hash' => $this->secret, // Store raw secret

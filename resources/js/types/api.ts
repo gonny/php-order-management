@@ -35,6 +35,7 @@ export interface Client extends BaseEntity {
   last_name: string;
   company?: string;
   vat_id?: string;
+  is_active?: boolean;
   meta?: Record<string, any>;
   orders?: Order[];
   addresses?: Address[];
@@ -48,6 +49,7 @@ export interface ClientCreateDTO {
   last_name: string;
   company?: string;
   vat_id?: string;
+  is_active?: boolean;
   meta?: Record<string, any>;
 }
 
@@ -226,6 +228,13 @@ export interface PaginatedResponse<T> {
   data: T[];
   meta: PaginationMeta;
   links: PaginationLinks;
+  // Laravel pagination properties (for direct access)
+  current_page: number;
+  from: number;
+  last_page: number;
+  per_page: number;
+  to: number;
+  total: number;
 }
 
 export interface ApiResponse<T> {
@@ -266,8 +275,8 @@ export interface ClientFilters {
 }
 
 export interface WebhookFilters {
-  source?: WebhookSource[];
-  status?: WebhookStatus[];
+  source?: string;
+  status?: string;
   event_type?: string;
   date_from?: string;
   date_to?: string;

@@ -31,7 +31,7 @@ class PdfController extends Controller
         }
 
         $filePath = Storage::disk('pdfs')->path($order->pdf_path);
-        
+
         return response()->download(
             $filePath,
             "order_{$order->number}_grid.pdf",
@@ -79,7 +79,7 @@ class PdfController extends Controller
         }
 
         $filePath = Storage::disk('local')->path($order->pdf_label_path);
-        
+
         return response()->download(
             $filePath,
             "dpd_label_{$order->number}.pdf",

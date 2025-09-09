@@ -17,6 +17,7 @@ class ProcessWebhook implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 60;
 
     /**
@@ -73,7 +74,7 @@ class ProcessWebhook implements ShouldQueue
 
     private function handleBalikovnaWebhook(): void
     {
-        $payload = (array)$this->webhook->payload;
+        $payload = (array) $this->webhook->payload;
         $orderId = $payload['order_id'] ?? null;
 
         if (!$orderId) {

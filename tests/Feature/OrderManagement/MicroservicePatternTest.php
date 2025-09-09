@@ -54,7 +54,7 @@ class MicroservicePatternTest extends TestCase
     public function test_end_to_end_order_automation_new_to_paid(): void
     {
         Queue::fake();
-        
+
         $order = $this->createTestOrder();
 
         // Step 1: New -> Confirmed (validates order requirements)
@@ -68,7 +68,7 @@ class MicroservicePatternTest extends TestCase
         );
 
         $this->assertEquals(Order::STATUS_CONFIRMED, $confirmedOrder->status);
-        
+
         // Verify audit log was created
         $this->assertDatabaseHas('audit_logs', [
             'entity_type' => 'order',
@@ -80,7 +80,7 @@ class MicroservicePatternTest extends TestCase
 
         // Verify background job was dispatched
         Queue::assertPushed(ProcessOrderStateChange::class, function ($job) use ($order) {
-            return $job->order->id === $order->id 
+            return $job->order->id === $order->id
                 && $job->previousStatus === Order::STATUS_NEW
                 && $job->newStatus === Order::STATUS_CONFIRMED;
         });
@@ -103,7 +103,7 @@ class MicroservicePatternTest extends TestCase
 
         // Verify second background job
         Queue::assertPushed(ProcessOrderStateChange::class, function ($job) use ($order) {
-            return $job->order->id === $order->id 
+            return $job->order->id === $order->id
                 && $job->previousStatus === Order::STATUS_CONFIRMED
                 && $job->newStatus === Order::STATUS_PAID;
         });
@@ -112,7 +112,7 @@ class MicroservicePatternTest extends TestCase
     public function test_microservice_pattern_with_carrier_automation(): void
     {
         Queue::fake();
-        
+
         $order = $this->createTestOrder(Order::STATUS_CONFIRMED);
 
         // Transition to paid - should trigger shipping label generation
@@ -137,7 +137,7 @@ class MicroservicePatternTest extends TestCase
     public function test_order_validation_prevents_invalid_transitions(): void
     {
         $order = $this->createTestOrder();
-        
+
         // Remove required data to trigger validation failure
         $order->update(['total_amount' => 0]);
 
@@ -154,7 +154,7 @@ class MicroservicePatternTest extends TestCase
     public function test_payment_validation_for_paid_transition(): void
     {
         $order = $this->createTestOrder(Order::STATUS_CONFIRMED);
-        
+
         // Remove payment method identifier
         $order->update(['pmi_id' => null]);
 
@@ -171,7 +171,7 @@ class MicroservicePatternTest extends TestCase
     public function test_carrier_validation_for_fulfillment(): void
     {
         $order = $this->createTestOrder(Order::STATUS_PAID);
-        
+
         // Remove carrier
         $order->update(['carrier' => null]);
 
@@ -188,7 +188,7 @@ class MicroservicePatternTest extends TestCase
     public function test_audit_trail_captures_complete_order_lifecycle(): void
     {
         Queue::fake();
-        
+
         $order = $this->createTestOrder();
 
         // Complete order lifecycle
@@ -227,7 +227,7 @@ class MicroservicePatternTest extends TestCase
     public function test_concurrent_state_changes_are_handled_safely(): void
     {
         Queue::fake();
-        
+
         $order = $this->createTestOrder();
 
         // Simulate concurrent state changes (database transaction should handle this)
@@ -239,7 +239,7 @@ class MicroservicePatternTest extends TestCase
 
         // Refresh and continue
         $order->refresh();
-        
+
         $this->stateMachine->transition(
             $order,
             Order::STATUS_PAID,
@@ -256,7 +256,7 @@ class MicroservicePatternTest extends TestCase
     public function test_metadata_is_preserved_through_transitions(): void
     {
         Queue::fake();
-        
+
         $order = $this->createTestOrder();
 
         $metadata = [
@@ -326,7 +326,7 @@ class MicroservicePatternTest extends TestCase
     public function test_microservice_pattern_with_external_integrations(): void
     {
         Queue::fake();
-        
+
         $order = $this->createTestOrder();
 
         // Simulate external system triggering state change

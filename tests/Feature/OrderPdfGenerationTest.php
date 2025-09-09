@@ -2,11 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\GenerateOrderPdfJob;
 use App\Models\ApiClient;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -20,10 +18,10 @@ class OrderPdfGenerationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create test API client using factory
         $this->apiClient = ApiClient::factory()->create();
-        
+
         // Fake storage and queue
         Storage::fake('pdfs');
         Queue::fake();
@@ -36,7 +34,7 @@ class OrderPdfGenerationTest extends TestCase
         // Test missing required fields
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/pdf", [])
             ->postJson("/api/v1/orders/{$order->id}/pdf", []);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['images', 'cell_size', 'overlay_url']);
     }
@@ -55,7 +53,7 @@ class OrderPdfGenerationTest extends TestCase
             'cell_size' => 200,
             'overlay_url' => 'https://cdn.domain.com/overlay.svg',
         ]);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['images']);
 
@@ -67,7 +65,7 @@ class OrderPdfGenerationTest extends TestCase
         ];
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/pdf", $payload)
             ->postJson("/api/v1/orders/{$order->id}/pdf", $payload);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['images']);
     }
@@ -84,7 +82,7 @@ class OrderPdfGenerationTest extends TestCase
         ];
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/pdf", $payload)
             ->postJson("/api/v1/orders/{$order->id}/pdf", $payload);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['cell_size']);
 
@@ -96,7 +94,7 @@ class OrderPdfGenerationTest extends TestCase
         ];
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/pdf", $payload)
             ->postJson("/api/v1/orders/{$order->id}/pdf", $payload);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['cell_size']);
     }
@@ -113,7 +111,7 @@ class OrderPdfGenerationTest extends TestCase
         ];
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/pdf", $payload)
             ->postJson("/api/v1/orders/{$order->id}/pdf", $payload);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['images.0']);
 
@@ -125,7 +123,7 @@ class OrderPdfGenerationTest extends TestCase
         ];
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/pdf", $payload)
             ->postJson("/api/v1/orders/{$order->id}/pdf", $payload);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['overlay_url']);
     }
@@ -167,10 +165,10 @@ class OrderPdfGenerationTest extends TestCase
     {
         $timestamp = time();
         $bodyJson = json_encode($body);
-        
+
         // Get the plain text secret from meta (stored by factory for testing)
         $secret = $this->apiClient->meta['secret'] ?? 'fallback-secret';
-        
+
         // Create HMAC signature
         $digest = 'SHA-256=' . base64_encode(hash('sha256', $bodyJson, true));
         $stringToSign = implode("\n", [

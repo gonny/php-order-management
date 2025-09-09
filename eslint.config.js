@@ -44,9 +44,13 @@ export default ts.config(
     {
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unused-vars': 'error',
             'svelte/infinite-reactive-loop': 'error',
             'svelte/no-at-html-tags': 'error',
             'svelte/no-target-blank': 'error',
+            'svelte/require-each-key': 'error',
+            'svelte/prefer-svelte-reactivity': 'error',
+            'svelte/no-navigation-without-resolve': 'off', // Disable for now as we use Laravel routes
         },
     },
     {

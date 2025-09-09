@@ -18,6 +18,7 @@ class GenerateShippingLabel implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 120;
 
     /**
@@ -77,7 +78,7 @@ class GenerateShippingLabel implements ShouldQueue
     private function generateBalikovnaLabel(): ShippingLabel
     {
         $shippingAddress = $this->order->shippingAddress;
-        
+
         if (!$shippingAddress) {
             throw new \InvalidArgumentException('Order missing shipping address');
         }
@@ -130,7 +131,7 @@ class GenerateShippingLabel implements ShouldQueue
     private function generateDpdLabel(): ShippingLabel
     {
         $shippingAddress = $this->order->shippingAddress;
-        
+
         if (!$shippingAddress) {
             throw new \InvalidArgumentException('Order missing shipping address');
         }

@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Spa;
 
 use App\Http\Controllers\Controller;
-use App\Models\Order;
 use App\Models\Client;
+use App\Models\Order;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -27,7 +26,7 @@ class DashboardController extends Controller
                 'today' => Order::whereDate('created_at', today())->count(),
                 'this_week' => Order::whereBetween('created_at', [
                     now()->startOfWeek(),
-                    now()->endOfWeek()
+                    now()->endOfWeek(),
                 ])->count(),
                 'this_month' => Order::whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)
@@ -47,7 +46,7 @@ class DashboardController extends Controller
                     ->sum('total_amount') ?: 0,
                 'this_week' => Order::whereBetween('created_at', [
                     now()->startOfWeek(),
-                    now()->endOfWeek()
+                    now()->endOfWeek(),
                 ])->sum('total_amount') ?: 0,
             ],
             'recent_orders' => Order::with('client')
@@ -64,16 +63,16 @@ class DashboardController extends Controller
                         'created_at' => $order->created_at->toISOString(),
                     ];
                 }),
-            "queue_sizes" => [
-                "pending_jobs" => 0,
+            'queue_sizes' => [
+                'pending_jobs' => 0,
             ],
-            "recent_orders" => [],
-            "recent_activities" => []
+            'recent_orders' => [],
+            'recent_activities' => [],
         ];
 
         return response()->json([
             'data' => $metrics,
-            'message' => 'Dashboard metrics retrieved successfully'
+            'message' => 'Dashboard metrics retrieved successfully',
         ]);
     }
 }

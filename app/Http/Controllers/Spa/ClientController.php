@@ -7,6 +7,7 @@ use App\Models\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class ClientController extends Controller
 {
@@ -22,9 +23,9 @@ class ClientController extends Controller
             $search = $request->get('search');
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('company', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('company', 'like', "%{$search}%");
             });
         }
 
@@ -51,14 +52,14 @@ class ClientController extends Controller
                 'per_page' => $clients->perPage(),
                 'total' => $clients->total(),
             ],
-            'message' => 'Clients retrieved successfully'
+            'message' => 'Clients retrieved successfully',
         ]);
     }
 
     /**
      * Store a newly created client.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'external_id' => ['sometimes', 'string', 'max:255'],
@@ -72,25 +73,16 @@ class ClientController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            return back()->withErrors($validator)->withInput();
         }
 
         try {
             $client = Client::create($request->all());
 
-            return response()->json([
-                'data' => $client,
-                'message' => 'Client created successfully',
-            ], 201);
+            return redirect()->route('clients.index')->with('success', 'Client created successfully');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Client creation failed',
-                'message' => $e->getMessage(),
-            ], 500);
+            return back()->withErrors(['error' => 'Client creation failed: ' . $e->getMessage()])->withInput();
         }
     }
 
@@ -115,14 +107,12 @@ class ClientController extends Controller
     /**
      * Update the specified client.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, string $id)
     {
         $client = Client::find($id);
 
         if (!$client) {
-            return response()->json([
-                'error' => 'Client not found',
-            ], 404);
+            return back()->withErrors(['error' => 'Client not found']);
         }
 
         $validator = Validator::make($request->all(), [
@@ -138,61 +128,42 @@ class ClientController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            return back()->withErrors($validator)->withInput();
         }
 
         try {
             $client->update($request->all());
 
-            return response()->json([
-                'data' => $client->fresh(),
-                'message' => 'Client updated successfully',
-            ]);
+            return redirect()->route('clients.index')->with('success', 'Client updated successfully');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Client update failed',
-                'message' => $e->getMessage(),
-            ], 500);
+            return back()->withErrors(['error' => 'Client update failed: ' . $e->getMessage()]);
         }
     }
 
     /**
      * Remove the specified client.
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $id)
     {
         $client = Client::find($id);
 
         if (!$client) {
-            return response()->json([
-                'error' => 'Client not found',
-            ], 404);
+            return back()->withErrors(['error' => 'Client not found']);
         }
 
         // Check if client has orders
         if ($client->orders()->exists()) {
-            return response()->json([
-                'error' => 'Cannot delete client with existing orders',
-                'message' => 'Client has orders and cannot be deleted. Consider deactivating instead.',
-            ], 422);
+            return back()->withErrors(['error' => 'Cannot delete client with existing orders. Consider deactivating instead.']);
         }
 
         try {
             $client->delete();
 
-            return response()->json([
-                'message' => 'Client deleted successfully',
-            ]);
+            return redirect()->route('clients.index')->with('success', 'Client deleted successfully');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Client deletion failed',
-                'message' => $e->getMessage(),
-            ], 500);
+            return back()->withErrors(['error' => 'Client deletion failed: ' . $e->getMessage()]);
         }
     }
 }

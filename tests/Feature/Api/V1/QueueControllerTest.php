@@ -11,7 +11,7 @@ use Tests\Traits\ApiTestHelpers;
 
 class QueueControllerTest extends TestCase
 {
-    use RefreshDatabase, ApiTestHelpers;
+    use ApiTestHelpers, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -147,7 +147,7 @@ class QueueControllerTest extends TestCase
         // The response might be 200 (if Artisan command succeeds) or 500 (if it fails)
         // Both are acceptable behavior depending on how Laravel handles the situation
         $this->assertContains($response->status(), [200, 500]);
-        
+
         if ($response->status() === 200) {
             $response->assertJson([
                 'message' => 'Job queued for retry successfully',
@@ -166,7 +166,7 @@ class QueueControllerTest extends TestCase
         // The response might be 200 (if Artisan command succeeds) or 500 (if it fails)
         // Both are acceptable behavior depending on how Laravel handles the situation
         $this->assertContains($response->status(), [200, 500]);
-        
+
         if ($response->status() === 200) {
             $response->assertJson([
                 'message' => 'Failed job deleted successfully',

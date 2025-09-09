@@ -34,17 +34,17 @@ class SpaAuthenticationTest extends TestCase
 
         // Test dashboard metrics
         $response = $this->actingAs($user, 'sanctum')
-                        ->getJson('/spa/v1/dashboard/metrics');
+            ->getJson('/spa/v1/dashboard/metrics');
         $response->assertStatus(200);
 
         // Test orders listing
         $response = $this->actingAs($user, 'sanctum')
-                        ->getJson('/spa/v1/orders');
+            ->getJson('/spa/v1/orders');
         $response->assertStatus(200);
 
         // Test clients listing
         $response = $this->actingAs($user, 'sanctum')
-                        ->getJson('/spa/v1/clients');
+            ->getJson('/spa/v1/clients');
         $response->assertStatus(200);
     }
 
@@ -56,16 +56,16 @@ class SpaAuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-                        ->getJson('/spa/v1/auth/user');
+            ->getJson('/spa/v1/auth/user');
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'user' => [
-                        'id' => $user->id,
-                        'email' => $user->email,
-                        'name' => $user->name,
-                    ]
-                ]);
+            ->assertJson([
+                'user' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'name' => $user->name,
+                ],
+            ]);
     }
 
     /**
@@ -89,16 +89,16 @@ class SpaAuthenticationTest extends TestCase
 
         // Should be able to access Sanctum-protected routes
         $response = $this->getJson('/spa/v1/auth/user', [
-            'X-Requested-With' => 'XMLHttpRequest'
+            'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $response->assertStatus(200)
-                ->assertJson([
-                    'user' => [
-                        'id' => $user->id,
-                        'email' => $user->email,
-                    ]
-                ]);
+            ->assertJson([
+                'user' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                ],
+            ]);
     }
 
     /**
@@ -110,10 +110,10 @@ class SpaAuthenticationTest extends TestCase
 
         // Attempt to create an order without CSRF token
         $response = $this->actingAs($user, 'sanctum')
-                        ->postJson('/spa/v1/orders', [
-                            'number' => 'TEST001',
-                            'status' => 'new',
-                        ]);
+            ->postJson('/spa/v1/orders', [
+                'number' => 'TEST001',
+                'status' => 'new',
+            ]);
 
         // Should work since we're using the test environment
         // In a real browser, CSRF would be required

@@ -28,10 +28,10 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->dropColumn([
                 'shipping_method',
-                'pickup_point_id', 
+                'pickup_point_id',
                 'pdf_label_path',
                 'dpd_shipment_id',
-                'parcel_group_id'
+                'parcel_group_id',
             ]);
         });
     }

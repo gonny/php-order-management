@@ -5,7 +5,7 @@
     import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
     import { type NavItem } from '@/types';
     import { Link } from '@inertiajs/svelte';
-    import { BookOpen, Folder, LayoutGrid, ShoppingCart, Users, Webhook, Settings } from 'lucide-svelte';
+    import { BookOpen, Folder, LayoutGrid, ShoppingCart, Users, Webhook, Settings, FileText, ListTodo } from 'lucide-svelte';
     import AppLogo from './AppLogo.svelte';
 
     const mainNavItems: NavItem[] = [
@@ -28,6 +28,16 @@
             title: 'Webhooks',
             href: '/webhooks',
             icon: Webhook,
+        },
+        {
+            title: 'Audit Logs',
+            href: '/audit-logs',
+            icon: FileText,
+        },
+        {
+            title: 'Queues',
+            href: '/queues',
+            icon: ListTodo,
         },
         {
             title: 'Settings',

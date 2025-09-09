@@ -16,7 +16,7 @@ class PdfGenerationIntegrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Fake storage for testing
         Storage::fake('local');
         Storage::fake('pdfs');
@@ -25,7 +25,7 @@ class PdfGenerationIntegrationTest extends TestCase
     public function test_pdf_generation_job_runs_successfully(): void
     {
         $order = Order::factory()->create();
-        
+
         // Mock HTTP responses for image and overlay downloads
         Http::fake([
             'https://cf2.r2.link/test1.png' => Http::response('fake-image-data', 200),
@@ -59,7 +59,7 @@ class PdfGenerationIntegrationTest extends TestCase
     public function test_pdf_generation_handles_job_parameters_correctly(): void
     {
         $order = Order::factory()->create();
-        
+
         Http::fake([
             '*' => Http::response('fake-content', 200),
         ]);
@@ -73,7 +73,7 @@ class PdfGenerationIntegrationTest extends TestCase
 
         foreach ($testCases as $index => $case) {
             $images = array_fill(0, $case['images'], "https://cf2.r2.link/test{$index}.png");
-            
+
             $job = new GenerateOrderPdfJob(
                 $order,
                 $images,
@@ -91,11 +91,11 @@ class PdfGenerationIntegrationTest extends TestCase
     {
         // Test that the pdfs disk is properly configured
         $this->assertNotNull(config('filesystems.disks.pdfs'));
-        
+
         // Test we can write to the pdfs disk
         Storage::disk('pdfs')->put('test.pdf', 'test content');
         Storage::disk('pdfs')->assertExists('test.pdf');
-        
+
         // Configuration verified by successful disk operations above
     }
 }

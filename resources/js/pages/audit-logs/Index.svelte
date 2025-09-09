@@ -9,7 +9,7 @@
     import { Input } from '@/components/ui/input';
     import { Label } from '@/components/ui/label';
     import * as Select from '@/components/ui/select';
-    import { RefreshCw, Filter, FileText, User, Activity, Clock, Eye } from 'lucide-svelte';
+    import { RefreshCw, Filter, FileText, User, Activity, Clock } from 'lucide-svelte';
     import { onMount } from 'svelte';
     import { spaApiClient } from '@/lib/spa-api';
 
@@ -18,7 +18,7 @@
         { title: 'Audit Logs', href: '/audit-logs' },
     ];
 
-    let auditLogs = [];
+    let auditLogs: any[] = [];
     let stats = {
         total_entries: 0,
         entries_today: 0,
@@ -31,7 +31,9 @@
         current_page: 1,
         per_page: 20,
         total: 0,
-        last_page: 1
+        last_page: 1,
+        from: 0,
+        to: 0
     };
     let isLoading = true;
     let activeTab = 'logs';
@@ -52,14 +54,16 @@
     async function loadAuditLogs() {
         isLoading = true;
         try {
-            const params = new URLSearchParams();
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value) params.append(key, value.toString());
-            });
-
-            const response = await spaApiClient.get(`/audit-logs?${params.toString()}`);
+            const response = await spaApiClient.getAuditLogs(filters);
             auditLogs = response.data;
-            meta = response.meta;
+            meta = {
+                current_page: response.current_page,
+                per_page: response.per_page,
+                total: response.total,
+                last_page: response.last_page,
+                from: response.from,
+                to: response.to
+            };
         } catch (error) {
             console.error('Failed to load audit logs:', error);
         } finally {
@@ -69,8 +73,8 @@
 
     async function loadStats() {
         try {
-            const response = await spaApiClient.get('/audit-logs/stats');
-            stats = response.data;
+            const response = await spaApiClient.getAuditLogStats();
+            stats = response;
         } catch (error) {
             console.error('Failed to load audit log stats:', error);
         }
@@ -126,27 +130,6 @@
         }
     }
 
-    function formatChanges(auditLog: any) {
-        if (!auditLog.before || !auditLog.after) return 'N/A';
-        
-        const changes = [];
-        const before = auditLog.before;
-        const after = auditLog.after;
-        
-        // Compare before and after
-        Object.keys(after).forEach(key => {
-            if (before[key] !== after[key]) {
-                changes.push({
-                    field: key,
-                    from: before[key],
-                    to: after[key]
-                });
-            }
-        });
-        
-        return changes;
-    }
-
     onMount(() => {
         loadAuditLogs();
         loadStats();
@@ -188,7 +171,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                             <div>
                                 <Label for="entity_type">Entity Type</Label>
-                                <Select.Root bind:selected={filters.entity_type}>
+                                <Select.Root type="single" bind:value={filters.entity_type}>
                                     <Select.Trigger>
                                         <Select.Value placeholder="All entities" />
                                     </Select.Trigger>
@@ -208,7 +191,7 @@
 
                             <div>
                                 <Label for="actor_type">Actor Type</Label>
-                                <Select.Root bind:selected={filters.actor_type}>
+                                <Select.Root type="single" bind:value={filters.actor_type}>
                                     <Select.Trigger>
                                         <Select.Value placeholder="All actors" />
                                     </Select.Trigger>
@@ -223,7 +206,7 @@
 
                             <div>
                                 <Label for="action">Action</Label>
-                                <Select.Root bind:selected={filters.action}>
+                                <Select.Root type="single" bind:value={filters.action}>
                                     <Select.Trigger>
                                         <Select.Value placeholder="All actions" />
                                     </Select.Trigger>
@@ -275,7 +258,7 @@
                                     </Table.Row>
                                 </Table.Header>
                                 <Table.Body>
-                                    {#each auditLogs as log}
+                                    {#each auditLogs as log (log.id)}
                                         <Table.Row>
                                             <Table.Cell>
                                                 <div class="flex items-center gap-2">
@@ -405,7 +388,7 @@
                         </Card.Header>
                         <Card.Content>
                             <div class="space-y-2">
-                                {#each Object.entries(stats.by_entity_type) as [entityType, count]}
+                                {#each Object.entries(stats.by_entity_type) as [entityType, count] (entityType)}
                                     <div class="flex justify-between items-center">
                                         <span class="capitalize">{entityType}</span>
                                         <Badge variant="secondary">{count}</Badge>
@@ -421,7 +404,7 @@
                         </Card.Header>
                         <Card.Content>
                             <div class="space-y-2">
-                                {#each Object.entries(stats.by_action) as [action, count]}
+                                {#each Object.entries(stats.by_action) as [action, count] (action)}
                                     <div class="flex justify-between items-center">
                                         <Badge class={getActionColor(action)}>{action}</Badge>
                                         <Badge variant="secondary">{count}</Badge>
@@ -437,7 +420,7 @@
                         </Card.Header>
                         <Card.Content>
                             <div class="space-y-2">
-                                {#each Object.entries(stats.by_actor_type) as [actorType, count]}
+                                {#each Object.entries(stats.by_actor_type) as [actorType, count] (actorType)}
                                     <div class="flex justify-between items-center">
                                         <div class="flex items-center gap-2">
                                             <svelte:component this={getActorIcon(actorType)} class="h-4 w-4" />

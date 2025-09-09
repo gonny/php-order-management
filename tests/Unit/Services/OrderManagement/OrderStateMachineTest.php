@@ -22,7 +22,7 @@ class OrderStateMachineTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->stateMachine = new OrderStateMachine(new AuditLogger());
+        $this->stateMachine = new OrderStateMachine(new AuditLogger);
     }
 
     public function test_can_transition_from_new_to_confirmed(): void
@@ -70,7 +70,7 @@ class OrderStateMachineTest extends TestCase
         // The validation should check total_amount, but it checks items first
         $this->expectException(InvalidOrderTransitionException::class);
         $this->expectExceptionMessage('Order must have at least one item');
-        
+
         $this->stateMachine->transition($order, Order::STATUS_CONFIRMED);
     }
 
@@ -79,13 +79,13 @@ class OrderStateMachineTest extends TestCase
         $order = $this->createValidOrder([
             'status' => Order::STATUS_CONFIRMED,
         ]);
-        
+
         // Clear the pmi_id after creation
         $order->update(['pmi_id' => null]);
 
         $this->expectException(InvalidOrderTransitionException::class);
         $this->expectExceptionMessage('Order must have a valid payment method identifier');
-        
+
         $this->stateMachine->transition($order, Order::STATUS_PAID);
     }
 
@@ -94,13 +94,13 @@ class OrderStateMachineTest extends TestCase
         $order = $this->createValidOrder([
             'status' => Order::STATUS_PAID,
         ]);
-        
+
         // Clear the carrier after creation
         $order->update(['carrier' => null]);
 
         $this->expectException(InvalidOrderTransitionException::class);
         $this->expectExceptionMessage('Order must have a carrier assigned');
-        
+
         $this->stateMachine->transition($order, Order::STATUS_FULFILLED);
     }
 

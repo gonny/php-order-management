@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\GenerateDpdLabelJob;
 use App\Jobs\DeleteDpdShipmentJob;
+use App\Jobs\GenerateDpdLabelJob;
 use App\Models\Address;
 use App\Models\ApiClient;
 use App\Models\Client;
@@ -18,12 +18,13 @@ class DpdLabelApiTest extends TestCase
     use RefreshDatabase;
 
     private ApiClient $apiClient;
+
     private Order $order;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create API client for authentication
         $this->apiClient = ApiClient::create([
             'name' => 'Test Client',
@@ -76,7 +77,7 @@ class DpdLabelApiTest extends TestCase
         $payload = [
             'shipping_method' => 'DPD_Home',
         ];
-        
+
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$this->order->id}/label/dpd", $payload)
             ->postJson("/api/v1/orders/{$this->order->id}/label/dpd", $payload);
 
@@ -85,7 +86,7 @@ class DpdLabelApiTest extends TestCase
                 'message',
                 'order_id',
                 'status',
-                'shipping_method'
+                'shipping_method',
             ])
             ->assertJson([
                 'status' => 'queued',
@@ -121,7 +122,7 @@ class DpdLabelApiTest extends TestCase
                 'message',
                 'order_id',
                 'status',
-                'shipping_method'
+                'shipping_method',
             ])
             ->assertJson([
                 'status' => 'queued',
@@ -238,7 +239,7 @@ class DpdLabelApiTest extends TestCase
     public function test_can_delete_dpd_shipment()
     {
         Queue::fake();
-        
+
         $this->order->update(['dpd_shipment_id' => 'SHIP123456']);
 
         $response = $this->withHmacAuth('DELETE', "/api/v1/orders/{$this->order->id}/shipment/dpd", [])
@@ -249,7 +250,7 @@ class DpdLabelApiTest extends TestCase
                 'message',
                 'order_id',
                 'shipment_id',
-                'status'
+                'status',
             ])
             ->assertJson([
                 'status' => 'queued',
@@ -281,15 +282,15 @@ class DpdLabelApiTest extends TestCase
         $timestamp = time();
         $bodyJson = json_encode($body);
         $digest = 'SHA-256=' . base64_encode(hash('sha256', $bodyJson, true));
-        
+
         // Create string to sign in correct format matching backend
         $stringToSign = implode("\n", [
             $method,
             $path,
             $timestamp,
-            $digest
+            $digest,
         ]);
-        
+
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $this->apiClient->secret_hash, true));
 
         return $this->withHeaders([

@@ -2,11 +2,11 @@ import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-qu
 import { spaApiClient, handleSpaApiError } from '@/lib/spa-api';
 import type {
   Order,
-  OrderFilters,
   OrderCreateDTO,
   OrderTransition,
   OrderUpdateDTO,
 } from '@/packages/orders/types/order';
+import type { OrderFilters } from '@/packages/orders/types/filters';
 
 // Query keys
 export const orderKeys = {

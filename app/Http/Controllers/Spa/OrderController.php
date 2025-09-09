@@ -89,7 +89,7 @@ class OrderController extends Controller
             'client.last_name' => ['required', 'string', 'max:255'],
             'client.phone' => ['sometimes', 'string'],
             'client.company' => ['sometimes', 'string'],
-            
+
             'shipping_address' => ['required', 'array'],
             'shipping_address.name' => ['required', 'string'],
             'shipping_address.street1' => ['required', 'string'],
@@ -98,21 +98,21 @@ class OrderController extends Controller
             'shipping_address.postal_code' => ['required', 'string'],
             'shipping_address.country_code' => ['required', 'string', 'size:2'],
             'shipping_address.state' => ['sometimes', 'string'],
-            
+
             'billing_address' => ['sometimes', 'array'],
             'billing_address.name' => ['required_with:billing_address', 'string'],
             'billing_address.street1' => ['required_with:billing_address', 'string'],
             'billing_address.city' => ['required_with:billing_address', 'string'],
             'billing_address.postal_code' => ['required_with:billing_address', 'string'],
             'billing_address.country_code' => ['required_with:billing_address', 'string', 'size:2'],
-            
+
             'items' => ['required', 'array', 'min:1'],
             'items.*.sku' => ['required', 'string'],
             'items.*.name' => ['required', 'string'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'items.*.tax_rate' => ['sometimes', 'numeric', 'min:0', 'max:1'],
-            
+
             'carrier' => ['sometimes', Rule::in([Order::CARRIER_BALIKOVNA, Order::CARRIER_DPD])],
             'currency' => ['sometimes', 'string', 'size:3'],
             'meta' => ['sometimes', 'array'],
@@ -130,7 +130,7 @@ class OrderController extends Controller
                 // Create or find client
                 $clientData = $request->client;
                 $client = Client::where('email', $clientData['email'])->first();
-                
+
                 if (!$client) {
                     $client = Client::create($clientData);
                 }
@@ -236,7 +236,7 @@ class OrderController extends Controller
         }
 
         $originalData = $order->toArray();
-        
+
         $order->update($request->only(['carrier', 'meta']));
 
         $this->auditLogger->logOrderUpdate($order, $originalData, 'api', $this->getApiClientId($request));
@@ -261,7 +261,7 @@ class OrderController extends Controller
         }
 
         $this->auditLogger->logOrderDeletion($order, 'api', $this->getApiClientId($request));
-        
+
         $order->delete();
 
         return response()->json([
@@ -547,7 +547,7 @@ class OrderController extends Controller
                 'raw_response' => array_merge($shippingLabel->raw_response ?? [], [
                     'latest_tracking' => $trackingData,
                     'tracking_updated_at' => now()->toISOString(),
-                ])
+                ]),
             ]);
 
             // Log the tracking refresh
@@ -649,6 +649,7 @@ class OrderController extends Controller
     private function getApiClientId(Request $request): string
     {
         $apiClient = $request->attributes->get('api_client');
+
         return $apiClient ? $apiClient->key_id : 'unknown';
     }
 }

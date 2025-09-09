@@ -25,13 +25,13 @@
     }
 
     function navigateToClients() {
-        const params = new URLSearchParams();
+        const params = new SvelteURLSearchParams();
         
-        if (filters.page > 1) params.set('page', filters.page.toString());
-        if (filters.per_page !== 20) params.set('per_page', filters.per_page.toString());
+        if (filters.page && filters.page > 1) params.set('page', filters.page.toString());
+        if (filters.per_page && filters.per_page !== 20) params.set('per_page', filters.per_page.toString());
         if (filters.search) params.set('search', filters.search);
-        if (filters.sort !== 'created_at') params.set('sort', filters.sort);
-        if (filters.direction !== 'desc') params.set('direction', filters.direction);
+        if (filters.sort && filters.sort !== 'created_at') params.set('sort', filters.sort);
+        if (filters.direction && filters.direction !== 'desc') params.set('direction', filters.direction);
         
         const queryString = params.toString();
         const url = `/clients${queryString ? `?${queryString}` : ''}`;

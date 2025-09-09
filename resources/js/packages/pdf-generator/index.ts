@@ -17,7 +17,7 @@ export { useImageUpload, useImagePlaceholders, useBatchImageOperations } from '.
 
 // Types
 export type {
-	PdfGenerationForm,
+	PdfGenerationForm as PdfGenerationFormData,
 	PdfGenerationRequest,
 	PdfGenerationResponse,
 	PdfGenerationError,

@@ -44,7 +44,7 @@ class ApiClient extends Model
 
         // Ensure ip_allowlist is an array
         $allowList = is_array($this->ip_allowlist) ? $this->ip_allowlist : json_decode($this->ip_allowlist, true);
-        
+
         if (!is_array($allowList)) {
             return true; // Fallback if parsing fails
         }

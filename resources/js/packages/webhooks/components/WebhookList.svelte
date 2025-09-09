@@ -1,6 +1,6 @@
 <script lang="ts">
     import { useWebhooks, useReprocessWebhook } from '../hooks/use-webhooks';
-    import type { WebhookFilters } from '@/types';
+    import type { WebhookFilters, Webhook } from '@/types';
     import * as Card from '@/components/ui/card';
     import * as Dialog from '@/components/ui/dialog';
     import * as Table from '@/components/ui/table';
@@ -57,7 +57,7 @@
     ];
 
     // Dialog state
-    let selectedWebhook = $state(null);
+    let selectedWebhook: Webhook | null = $state(null);
     let dialogOpen = $state(false);
     let copiedPayload = $state(false);
 
@@ -178,7 +178,7 @@
                 <!-- Source Filter -->
                 <div class="space-y-2">
                     <Label for="source">Source</Label>
-                    <Select.Root type="single" bind:selected={filters.source}>
+                    <Select.Root type="single" bind:value={filters.source}>
                         <Select.Trigger>
                             <span>Select source...</span>
                         </Select.Trigger>
@@ -195,7 +195,7 @@
                 <!-- Status Filter -->
                 <div class="space-y-2">
                     <Label for="status">Status</Label>
-                    <Select.Root type="single" bind:selected={filters.status}>
+                    <Select.Root type="single" bind:value={filters.status}>
                         <Select.Trigger>
                             <span>Select status...</span>
                         </Select.Trigger>
@@ -265,6 +265,7 @@
                 <!-- Loading skeleton -->
                 <div class="p-6">
                     <div class="space-y-4">
+                        <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
                         {#each Array(5) as _, index (index)}
                             <div class="flex items-center space-x-4">
                                 <Skeleton class="h-12 w-12 rounded" />
@@ -422,7 +423,7 @@
                                 {#each Array.from({ length: Math.min(5, webhooksData.last_page) }, (_, i) => {
                                     const start = Math.max(1, webhooksData.current_page - 2);
                                     return start + i;
-                                }).filter(page => page <= webhooksData.last_page) as page}
+                                }).filter(page => page <= webhooksData.last_page) as page (page)}
                                     <Button
                                         variant={page === webhooksData.current_page ? "default" : "outline"}
                                         size="sm"

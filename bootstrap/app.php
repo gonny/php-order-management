@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             Route::prefix('spa/v1')
-                ->middleware('api')
+                ->middleware(['web', 'auth:sanctum'])
                 ->group(base_path('routes/spa.php'));
         },
     )

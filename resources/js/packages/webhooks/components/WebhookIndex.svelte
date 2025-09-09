@@ -28,7 +28,7 @@
     }
 
     function navigateToWebhooks() {
-        const params = new URLSearchParams();
+        const params = new SvelteURLSearchParams();
         
         if (filters.page > 1) params.set('page', filters.page.toString());
         if (filters.per_page !== 20) params.set('per_page', filters.per_page.toString());

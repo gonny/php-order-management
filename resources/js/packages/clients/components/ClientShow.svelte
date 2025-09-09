@@ -13,7 +13,6 @@
         Edit, 
         Mail,
         Phone,
-        MapPin,
         Building,
         FileText,
         Package,
@@ -63,7 +62,7 @@
             on_hold: 'bg-orange-100 text-orange-800',
             failed: 'bg-red-100 text-red-800',
         };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+        return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
     }
 </script>
 
@@ -272,7 +271,7 @@
                                                 </Table.Row>
                                             </Table.Header>
                                             <Table.Body>
-                                                {#each client.orders as order}
+                                                {#each client.orders as order (order.id)}
                                                     <Table.Row>
                                                         <Table.Cell>
                                                             <Button

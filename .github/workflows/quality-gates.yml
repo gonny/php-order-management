@@ -1,0 +1,30 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    needs: [frontend-quality, php-tests]
+    
+    steps:
+    - name: Check frontend quality
+      run: echo "Frontend quality checks passed"
+      
+    - name: Check PHP tests
+      run: echo "PHP tests passed"
+      
+    - name: All quality gates passed
+      run: echo "✅ All quality gates have passed. PR is ready for review."
+
+  frontend-quality:
+    uses: ./.github/workflows/frontend-quality.yml
+    if: always()
+    name: Frontend Linting & Type Checking
+    
+  php-tests:
+    uses: ./.github/workflows/php-tests.yml
+    if: always()
+    name: PHP Testing & Quality

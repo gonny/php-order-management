@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('tax_rate', 5, 4)->default(0);
             $table->json('meta')->nullable();
             $table->timestamps();
-            
+
             $table->index('order_id');
             $table->index('sku');
         });

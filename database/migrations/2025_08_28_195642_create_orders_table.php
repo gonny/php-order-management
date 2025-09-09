@@ -24,7 +24,7 @@ return new class extends Migration
             $table->enum('carrier', ['balikovna', 'dpd'])->nullable();
             $table->json('meta')->nullable();
             $table->timestamps();
-            
+
             $table->index(['status', 'created_at']);
             $table->index('client_id');
         });

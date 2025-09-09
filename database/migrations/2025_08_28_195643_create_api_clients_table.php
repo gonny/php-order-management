@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamp('last_used_at')->nullable();
             $table->json('meta')->nullable();
             $table->timestamps();
-            
+
             $table->index(['key_id', 'active']);
         });
     }

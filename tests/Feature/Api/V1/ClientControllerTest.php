@@ -10,7 +10,7 @@ use Tests\Traits\ApiTestHelpers;
 
 class ClientControllerTest extends TestCase
 {
-    use RefreshDatabase, ApiTestHelpers;
+    use ApiTestHelpers, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -41,7 +41,7 @@ class ClientControllerTest extends TestCase
                         'created_at',
                         'updated_at',
                         'orders',
-                    ]
+                    ],
                 ],
                 'meta' => [
                     'current_page',
@@ -226,7 +226,7 @@ class ClientControllerTest extends TestCase
                             'number',
                             'status',
                             'total_amount',
-                        ]
+                        ],
                     ],
                     'addresses',
                 ],
@@ -379,7 +379,7 @@ class ClientControllerTest extends TestCase
     public function test_clients_with_recent_orders_included(): void
     {
         $client = Client::factory()->create();
-        
+
         // Create more than 3 orders to test the limit
         Order::factory()->count(5)->create([
             'client_id' => $client->id,
@@ -390,7 +390,7 @@ class ClientControllerTest extends TestCase
 
         $response->assertStatus(200);
         $data = $response->json('data');
-        
+
         $clientData = collect($data)->firstWhere('id', $client->id);
         $this->assertNotNull($clientData);
         $this->assertLessThanOrEqual(3, count($clientData['orders'])); // Should limit to 3 recent orders

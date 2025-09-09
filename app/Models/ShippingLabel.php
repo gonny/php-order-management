@@ -30,11 +30,14 @@ class ShippingLabel extends Model
 
     // Status constants
     public const STATUS_GENERATED = 'generated';
+
     public const STATUS_FAILED = 'failed';
+
     public const STATUS_VOIDED = 'voided';
 
     // Format constants
     public const FORMAT_PDF = 'pdf';
+
     public const FORMAT_PNG = 'png';
 
     public function order(): BelongsTo

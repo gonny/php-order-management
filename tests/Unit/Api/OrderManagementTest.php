@@ -3,9 +3,8 @@
 namespace Tests\Unit\Api;
 
 use App\Models\ApiClient;
-use App\Models\Order;
 use App\Models\Client;
-use App\Models\Address;
+use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -19,7 +18,7 @@ class OrderManagementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->apiClient = ApiClient::factory()->create();
         Queue::fake();
     }
@@ -132,8 +131,8 @@ class OrderManagementTest extends TestCase
         $response->assertStatus(200);
 
         // Test by PMI ID
-        $response = $this->withHmacAuth('GET', "/api/v1/orders/PMI_12345")
-            ->getJson("/api/v1/orders/PMI_12345");
+        $response = $this->withHmacAuth('GET', '/api/v1/orders/PMI_12345')
+            ->getJson('/api/v1/orders/PMI_12345');
         $response->assertStatus(200)
             ->assertJsonPath('data.pmi_id', 'PMI_12345');
     }
@@ -141,7 +140,7 @@ class OrderManagementTest extends TestCase
     public function test_can_transition_order_status(): void
     {
         $order = Order::factory()->create(['status' => Order::STATUS_NEW]);
-        
+
         // Create order items as required for transitions
         \App\Models\OrderItem::factory()->create([
             'order_id' => $order->id,
@@ -155,11 +154,11 @@ class OrderManagementTest extends TestCase
             'reason' => 'Manual confirmation',
             'metadata' => ['admin_user' => 'test@admin.com'],
         ];
-        
+
         $transition = Order::STATUS_CONFIRMED;
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/transitions/{$transition}", $payload)
             ->postJson("/api/v1/orders/{$order->id}/transitions/{$transition}", $payload);
-        
+
         $response->assertStatus(200)
             ->assertJsonPath('data.status', Order::STATUS_CONFIRMED);
 
@@ -172,7 +171,7 @@ class OrderManagementTest extends TestCase
     public function test_cannot_transition_to_invalid_status(): void
     {
         $order = Order::factory()->create(['status' => Order::STATUS_NEW]);
-        
+
         // Create order items as required for transitions
         \App\Models\OrderItem::factory()->create([
             'order_id' => $order->id,
@@ -185,7 +184,7 @@ class OrderManagementTest extends TestCase
         $payload = [
             // Removed status since it's now in the URL
         ];
-        
+
         $transition = Order::STATUS_FULFILLED; // Cannot go directly from new to fulfilled
         $response = $this->withHmacAuth('POST', "/api/v1/orders/{$order->id}/transitions/{$transition}", $payload)
             ->postJson("/api/v1/orders/{$order->id}/transitions/{$transition}", $payload);
@@ -207,7 +206,7 @@ class OrderManagementTest extends TestCase
             'carrier' => 'dpd',
             'meta' => ['shipping_notes' => 'Handle with care'],
         ];
-        
+
         $response = $this->withHmacAuth('PATCH', "/api/v1/orders/{$order->id}", $payload)
             ->patchJson("/api/v1/orders/{$order->id}", $payload);
 
@@ -250,7 +249,7 @@ class OrderManagementTest extends TestCase
             'client' => ['email' => 'invalid-email'],
             'items' => [],
         ];
-        
+
         $response = $this->withHmacAuth('POST', '/api/v1/orders', $payload)
             ->postJson('/api/v1/orders', $payload);
 
@@ -263,7 +262,7 @@ class OrderManagementTest extends TestCase
         $timestamp = time();
         $bodyJson = json_encode($body);
         $digest = 'SHA-256=' . base64_encode(hash('sha256', $bodyJson, true));
-        
+
         // Create string to sign in correct format matching backend
         // Use getRequestUri() equivalent (path + query string)
         $uri = $path;
@@ -271,9 +270,9 @@ class OrderManagementTest extends TestCase
             $method,
             $uri,
             $timestamp,
-            $digest
+            $digest,
         ]);
-        
+
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $this->apiClient->secret_hash, true));
 
         return $this->withHeaders([
