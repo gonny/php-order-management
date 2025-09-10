@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -11,13 +12,13 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Exception;
 
 class GeneratePdfFromOrderJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 300; // 5 minutes
 
     /**
@@ -80,7 +81,7 @@ class GeneratePdfFromOrderJob implements ShouldQueue
     private function validateLocalPhotos(): void
     {
         $uploadsDisk = Storage::disk('uploads');
-        
+
         foreach ($this->order->local_photo_paths as $photoPath) {
             if (!$uploadsDisk->exists($photoPath)) {
                 throw new Exception("Local photo not found: {$photoPath}");
@@ -96,7 +97,7 @@ class GeneratePdfFromOrderJob implements ShouldQueue
         // Get full paths to local photos
         $uploadsDisk = Storage::disk('uploads');
         $processedImages = [];
-        
+
         foreach ($this->order->local_photo_paths as $photoPath) {
             $fullPath = $uploadsDisk->path($photoPath);
             $processedImages[] = $fullPath;
@@ -147,7 +148,7 @@ class GeneratePdfFromOrderJob implements ShouldQueue
         // Save PDF in the same directory as the photos
         $sessionDirectory = "uploads/{$this->order->remote_session_id}";
         Storage::disk('local')->makeDirectory($sessionDirectory);
-        
+
         $filename = "order_{$this->order->id}.pdf";
         $pdfPath = "{$sessionDirectory}/{$filename}";
         $fullPdfPath = Storage::disk('local')->path($pdfPath);

@@ -19,7 +19,7 @@ class R2PdfGenerationApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create API client for authentication
         $this->apiClient = ApiClient::factory()->create();
         Queue::fake();
@@ -74,7 +74,7 @@ class R2PdfGenerationApiTest extends TestCase
                     'name' => 'Test Product',
                     'qty' => 1,
                     'price' => 10.00,
-                ]
+                ],
             ],
         ];
     }

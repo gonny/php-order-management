@@ -74,7 +74,7 @@ return [
             'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
             'region' => env('CLOUDFLARE_R2_REGION', 'auto'),
             'bucket' => env('CLOUDFLARE_R2_BUCKET'),
-            'endpoint' => env('CLOUDFLARE_R2_ACCOUNT_ID') ? 
+            'endpoint' => env('CLOUDFLARE_R2_ACCOUNT_ID') ?
                 'https://' . env('CLOUDFLARE_R2_ACCOUNT_ID') . '.r2.cloudflarestorage.com' : null,
             'use_path_style_endpoint' => false,
             'throw' => false,

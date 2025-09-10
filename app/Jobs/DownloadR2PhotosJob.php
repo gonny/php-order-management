@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Order;
+use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
@@ -10,13 +11,13 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Exception;
 
 class DownloadR2PhotosJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $timeout = 600; // 10 minutes
 
     /**
@@ -98,10 +99,10 @@ class DownloadR2PhotosJob implements ShouldQueue
 
             // Download from R2
             $r2Disk = Storage::disk('r2');
-            
+
             // Extract the key from the R2 URL - this assumes R2 URLs follow a pattern
             $r2Key = $this->extractR2KeyFromUrl($r2PhotoLink);
-            
+
             if (!$r2Disk->exists($r2Key)) {
                 throw new Exception("Photo not found in R2: {$r2Key}");
             }
@@ -137,7 +138,7 @@ class DownloadR2PhotosJob implements ShouldQueue
         // Extract filename from URL
         $path = parse_url($r2PhotoLink, PHP_URL_PATH);
         $filename = basename($path);
-        
+
         // If no extension found, default to .png
         if (!pathinfo($filename, PATHINFO_EXTENSION)) {
             $filename = "photo_{$index}.png";
@@ -155,14 +156,14 @@ class DownloadR2PhotosJob implements ShouldQueue
         // This assumes URLs like: https://{account_id}.r2.cloudflarestorage.com/{bucket}/{key}
         $parsed = parse_url($url);
         $path = ltrim($parsed['path'], '/');
-        
+
         // Remove bucket name from path if present
         $pathParts = explode('/', $path, 2);
-        
+
         if (count($pathParts) > 1) {
             return $pathParts[1]; // Return everything after the first slash (assuming first part is bucket)
         }
-        
+
         return $path;
     }
 

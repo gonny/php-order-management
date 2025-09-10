@@ -6,8 +6,6 @@ use App\Jobs\DownloadR2PhotosJob;
 use App\Jobs\GeneratePdfFromOrderJob;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -19,7 +17,7 @@ class DownloadR2PhotosJobTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Set up storage disks for testing
         Storage::fake('r2');
         Storage::fake('uploads');
@@ -58,11 +56,11 @@ class DownloadR2PhotosJobTest extends TestCase
         Storage::disk('uploads')->assertMissing("uploads/{$remoteSessionId}");
 
         $job = new DownloadR2PhotosJob($order, $r2PhotoLinks, $remoteSessionId);
-        
+
         // Mock empty R2 links to test directory creation without actual file operations
         $this->expectException(\Exception::class);
         $job->handle();
-        
+
         // Directory should be created even if job fails
         Storage::disk('uploads')->assertExists("uploads/{$remoteSessionId}");
     }
@@ -77,14 +75,14 @@ class DownloadR2PhotosJobTest extends TestCase
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Photo not found in R2');
-        
+
         $job->handle();
     }
 
     public function test_job_chains_pdf_generation(): void
     {
         Queue::fake();
-        
+
         $order = Order::factory()->create();
         $remoteSessionId = 'test-session-123';
         $r2PhotoLinks = ['https://r2.example.com/photo1.jpg'];
@@ -146,7 +144,7 @@ class DownloadR2PhotosJobTest extends TestCase
         $job->handle();
 
         $order->refresh();
-        
+
         $this->assertEquals($remoteSessionId, $order->remote_session_id);
         $this->assertEquals($r2PhotoLinks, $order->r2_photo_links);
         $this->assertNotEmpty($order->local_photo_paths);

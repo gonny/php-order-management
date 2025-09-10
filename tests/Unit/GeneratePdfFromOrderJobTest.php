@@ -15,7 +15,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Set up storage disks for testing
         Storage::fake('uploads');
         Storage::fake('local');
@@ -53,7 +53,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('No local photo paths found for order');
-        
+
         $job->handle();
     }
 
@@ -67,7 +67,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('No local photo paths found for order');
-        
+
         $job->handle();
     }
 
@@ -82,7 +82,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
 
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Local photo not found');
-        
+
         $job->handle();
     }
 
@@ -113,7 +113,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
 
         // This should not throw an exception since photos exist
         $method->invoke($job);
-        
+
         // If we get here, validation passed
         $this->assertTrue(true);
     }
@@ -121,7 +121,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
     public function test_job_handles_grid_size_validation(): void
     {
         $remoteSessionId = 'test-session-123';
-        
+
         // Test with more than 9 photos (should be trimmed to 9)
         $photoPaths = [];
         for ($i = 1; $i <= 12; $i++) {
@@ -136,7 +136,7 @@ class GeneratePdfFromOrderJobTest extends TestCase
         ]);
 
         $job = new GeneratePdfFromOrderJob($order);
-        
+
         // Use reflection to test the generateHtml method
         $reflection = new \ReflectionClass($job);
         $method = $reflection->getMethod('generateHtml');
