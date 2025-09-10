@@ -1,16 +1,14 @@
 <script lang="ts">
-  import { type PageProps } from '@inertiajs/core';
-  import { router } from '@inertiajs/svelte';
-  import { AppLayout } from '~/layouts';
-  import { Button } from '~/components/ui/button';
-  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-  import { Label } from '~/components/ui/label';
-  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-  import { Textarea } from '~/components/ui/textarea';
-  import { Input } from '~/components/ui/input';
-  import { Badge } from '~/components/ui/badge';
-  import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-  import { Play, Copy, Download, History, ArrowLeft } from 'lucide-svelte';
+  import AppLayout from '@/layouts/AppLayout.svelte';
+  import { Button } from '@/components/ui/button';
+  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+  import { Label } from '@/components/ui/label';
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+  import { Textarea } from '@/components/ui/textarea';
+  import { Input } from '@/components/ui/input';
+  import { Badge } from '@/components/ui/badge';
+  import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  import { Play, Copy, ArrowLeft } from 'lucide-svelte';
 
   interface PayloadTemplate {
     name: string;
@@ -36,13 +34,13 @@
     is_active: boolean;
   }
 
-  interface Props extends PageProps {
+  interface Props {
     payloadTemplates: Record<string, PayloadTemplate>;
     endpoints: EndpointGroup[];
     apiClients: ApiClient[];
   }
 
-  let { payloadTemplates, endpoints, apiClients }: Props = $props();
+  let { payloadTemplates = {}, endpoints = [], apiClients = [] }: Props = $props();
 
   let selectedMethod = $state('GET');
   let selectedEndpoint = $state('/api/v1/health');
@@ -140,10 +138,15 @@
         <h1 class="text-3xl font-bold tracking-tight">API Testing Interface</h1>
         <p class="text-muted-foreground">Test your Laravel API endpoints with HMAC authentication</p>
       </div>
-      <Button variant="outline" href="/testing/queue-dashboard">
-        <ArrowLeft class="mr-2 h-4 w-4" />
-        Back to Dashboard
-      </Button>
+      <div class="flex gap-2">
+        <Button variant="outline" href="/swagger">
+          API Docs
+        </Button>
+        <Button variant="outline" href="/testing/queue-dashboard">
+          <ArrowLeft class="mr-2 h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -163,7 +166,7 @@
                   <SelectValue placeholder="Select an API client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {#each apiClients as client}
+                  {#each apiClients as client (client.id)}
                     <SelectItem value={client.id}>
                       {client.name} ({client.key_id})
                     </SelectItem>
@@ -230,7 +233,7 @@
                     <SelectValue placeholder="Select a template" />
                   </SelectTrigger>
                   <SelectContent>
-                    {#each Object.entries(payloadTemplates) as [key, template]}
+                    {#each Object.entries(payloadTemplates) as [key, template] (key)}
                       <SelectItem value={key}>{template.name}</SelectItem>
                     {/each}
                   </SelectContent>
@@ -336,11 +339,11 @@
           </CardHeader>
           <CardContent>
             <div class="space-y-4">
-              {#each endpoints as group}
+              {#each endpoints as group (group.group)}
                 <div>
                   <h4 class="font-medium mb-2">{group.group}</h4>
                   <div class="space-y-2">
-                    {#each group.endpoints as endpoint}
+                    {#each group.endpoints as endpoint (`${endpoint.method}-${endpoint.path}`)}
                       <button
                         class="w-full text-left p-2 rounded border hover:bg-muted transition-colors"
                         onclick={() => {
@@ -373,7 +376,7 @@
             </CardHeader>
             <CardContent>
               <div class="space-y-2 max-h-[300px] overflow-auto">
-                {#each testHistory as test}
+                {#each testHistory as test, index (test.timestamp + index)}
                   <div class="flex items-center justify-between p-2 border rounded">
                     <div class="flex items-center gap-2">
                       <Badge class={getMethodColor(test.method)} variant="outline">
@@ -404,7 +407,7 @@
       </CardHeader>
       <CardContent>
         <div class="grid gap-4 md:grid-cols-2">
-          {#each Object.entries(payloadTemplates) as [key, template]}
+          {#each Object.entries(payloadTemplates) as [key, template] (key)}
             <div class="border rounded-lg p-4">
               <div class="flex items-center justify-between mb-2">
                 <h4 class="font-medium">{template.name}</h4>

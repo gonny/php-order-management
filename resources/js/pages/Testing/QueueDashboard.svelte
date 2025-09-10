@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { type PageProps } from '@inertiajs/core';
   import { router } from '@inertiajs/svelte';
-  import { AppLayout } from '~/layouts';
-  import { Button } from '~/components/ui/button';
-  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
-  import { Badge } from '~/components/ui/badge';
+  import AppLayout from '@/layouts/AppLayout.svelte';
+  import { Button } from '@/components/ui/button';
+  import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+  import { Badge } from '@/components/ui/badge';
   import { AlertTriangle, CheckCircle, Clock, Trash2, RefreshCw } from 'lucide-svelte';
 
   interface QueueStats {
@@ -36,7 +35,7 @@
     is_active: boolean;
   }
 
-  interface Props extends PageProps {
+  interface Props {
     queueStats: QueueStats;
     recentJobs: RecentJobs;
     apiClients: ApiClient[];
@@ -88,6 +87,9 @@
         <p class="text-muted-foreground">Monitor and test your Laravel queue system</p>
       </div>
       <div class="flex gap-2">
+        <Button variant="outline" href="/swagger">
+          API Docs
+        </Button>
         <Button variant="outline" href="/testing/api-testing">
           API Testing
         </Button>
@@ -175,7 +177,7 @@
           {#if recentJobs.failed.length === 0}
             <p class="text-sm text-muted-foreground">No failed jobs found</p>
           {:else}
-            {#each recentJobs.failed as job}
+            {#each recentJobs.failed as job (job.id)}
               <div class="flex items-start justify-between border-b pb-3 last:border-b-0">
                 <div class="space-y-1">
                   <div class="flex items-center gap-2">
@@ -206,7 +208,7 @@
           {#if recentJobs.pending.length === 0}
             <p class="text-sm text-muted-foreground">No pending jobs found</p>
           {:else}
-            {#each recentJobs.pending as job}
+            {#each recentJobs.pending as job (job.id)}
               <div class="flex items-start justify-between border-b pb-3 last:border-b-0">
                 <div class="space-y-1">
                   <div class="flex items-center gap-2">
@@ -233,7 +235,7 @@
       </CardHeader>
       <CardContent>
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {#each apiClients as client}
+          {#each apiClients as client (client.id)}
             <div class="flex items-center justify-between p-3 border rounded-lg">
               <div>
                 <p class="font-medium">{client.name}</p>

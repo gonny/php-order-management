@@ -1,0 +1,56 @@
+/* Custom Swagger UI styles for HMAC authentication */
+
+/* Add custom header for HMAC authentication information */
+.swagger-ui .info .title:after {
+    content: "\A\A🔐 HMAC Authentication Required\A\AThis API uses HMAC-SHA256 authentication. Include these headers in all requests:\A• X-Key-Id: Your API key ID\A• X-Signature: HMAC-SHA256 signature\A• X-Timestamp: Unix timestamp\A• Digest: SHA-256 hash of request body\A\ASignature calculation:\A1. Create string: METHOD\\nURI\\nTIMESTAMP\\nDIGEST\A2. Sign with HMAC-SHA256 using your secret\A3. Base64 encode the result\A\AExample test interface available at: /testing/api-testing";
+    white-space: pre-line;
+    font-size: 14px;
+    font-weight: normal;
+    color: #3b4151;
+    background: #f7f7f7;
+    padding: 15px;
+    border-left: 4px solid #89bf04;
+    margin-top: 20px;
+    border-radius: 4px;
+    display: block;
+    font-family: 'Source Code Pro', monospace;
+}
+
+/* Style the security section */
+.swagger-ui .scheme-container {
+    background: #fff2cc;
+    border: 1px solid #d6b656;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.swagger-ui .auth-container .auth-wrapper {
+    background: #f0f8ff;
+    border: 1px solid #4a90e2;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+/* Add warning about HMAC complexity */
+.swagger-ui .auth-container:before {
+    content: "⚠️ Note: This Swagger UI cannot automatically generate HMAC signatures. Use the interactive testing interface at /testing/api-testing for HMAC-authenticated requests.";
+    display: block;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Highlight health endpoint as no-auth */
+.swagger-ui .opblock[data-tag="Health"] {
+    border-left: 4px solid #28a745;
+}
+
+.swagger-ui .opblock[data-tag="Health"] .opblock-summary-description:after {
+    content: " ✅ No authentication required";
+    color: #28a745;
+    font-weight: bold;
+}
