@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { SvelteURLSearchParams } from 'svelte/reactivity';
     import { useOrders } from '@/packages/orders';
     import AppLayout from '@/layouts/AppLayout.svelte';
     import type { BreadcrumbItem } from '@/types';
@@ -34,7 +33,7 @@
         { title: 'Orders', href: '/orders' },
     ];
 
-    // Initialize filters using the new store
+    // Initialize filters using Svelte 5 runes
     const filtersStore = createOrderFiltersStore({
         page: 1,
         per_page: 20,
@@ -42,8 +41,8 @@
         direction: 'desc',
     });
 
-    // Get orders using TanStack Query - FIXED: use stable reference
-    const ordersQuery = useOrders(filtersStore.filters);
+    // Get orders using TanStack Query with reactive filters (Svelte 5 runes syntax)
+    const ordersQuery = $derived(useOrders(filtersStore.filters));
 
     // Status options
     const statusOptions = [
@@ -62,6 +61,10 @@
         { value: 'dpd', label: 'DPD' },
     ];
 
+    // Selected values for filters
+    let selectedStatus = $state<string>('');
+    let selectedCarrier = $state<string>('');
+
     // FIXED: Use direct form inputs that update filters immediately
     // Remove reactive loops by not using $effect blocks
 
@@ -76,7 +79,7 @@
     }
 
     function navigateToOrders() {
-        const params = new SvelteURLSearchParams();
+        const params = new URLSearchParams();
         
         Object.entries(filtersStore.filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
@@ -143,10 +146,10 @@
                 <Button
                     variant="outline"
                     size="sm"
-                    onclick={() => ordersQuery.refetch()}
-                    disabled={ordersQuery.isFetching}
+                    onclick={() => $ordersQuery.refetch()}
+                    disabled={$ordersQuery.isFetching}
                 >
-                    <RefreshCw class="mr-2 h-4 w-4 {ordersQuery.isFetching ? 'animate-spin' : ''}" />
+                    <RefreshCw class="mr-2 h-4 w-4 {$ordersQuery.isFetching ? 'animate-spin' : ''}" />
                     Refresh
                 </Button>
                 <Button onclick={navigateToCreateOrder}>
@@ -171,10 +174,10 @@
                             <Input
                                 id="search"
                                 placeholder="Order number, PMI ID..."
-                                value={filtersStore.filters.search || ''}
+                                bind:value={filtersStore.filters.search}
                                 class="pl-8"
                                 onkeydown={(e) => e.key === 'Enter' && handleSearch()}
-                                oninput={(e) => filtersStore.setSearch(e.target.value)}
+                                oninput={(e) => filtersStore.setSearch((e.target as HTMLInputElement).value)}
                             />
                         </div>
                     </div>
@@ -183,11 +186,11 @@
                     <div class="space-y-2">
                         <Label for="status">Status</Label>
                         <Select.Root 
-                            type="single" 
-                            value={filtersStore.filters.status?.[0] || ''}
-                            onSelectedChange={(selected) => {
-                                if (selected?.value) {
-                                    filtersStore.setStatus([selected.value]);
+                            type="single"
+                            bind:value={selectedStatus}
+                            onValueChange={(value: string | undefined) => {
+                                if (value) {
+                                    filtersStore.setStatus([value]);
                                 } else {
                                     filtersStore.setStatus([]);
                                 }
@@ -211,10 +214,10 @@
                         <Label for="carrier">Carrier</Label>
                         <Select.Root 
                             type="single"
-                            value={filtersStore.filters.carrier?.[0] || ''}
-                            onSelectedChange={(selected) => {
-                                if (selected?.value) {
-                                    filtersStore.setCarrier([selected.value]);
+                            bind:value={selectedCarrier}
+                            onValueChange={(value: string | undefined) => {
+                                if (value) {
+                                    filtersStore.setCarrier([value]);
                                 } else {
                                     filtersStore.setCarrier([]);
                                 }
@@ -253,7 +256,7 @@
         <!-- Orders Table -->
         <Card.Root>
             <Card.Content class="p-0">
-                {#if ordersQuery.isLoading}
+                {#if $ordersQuery.isLoading}
                     <!-- Loading state -->
                     <div class="p-6">
                         <div class="space-y-4">
@@ -271,22 +274,22 @@
                             {/each}
                         </div>
                     </div>
-                {:else if ordersQuery.error}
+                {:else if $ordersQuery.error}
                     <!-- Error state -->
                     <div class="p-6 text-center">
                         <p class="text-red-600 dark:text-red-400">
-                            {ordersQuery.error?.message || 'Failed to load orders'}
+                            {$ordersQuery.error?.message || 'Failed to load orders'}
                         </p>
                         <Button 
                             class="mt-4" 
                             variant="outline" 
-                            onclick={() => ordersQuery.refetch()}
+                            onclick={() => $ordersQuery.refetch()}
                         >
                             Try Again
                         </Button>
                     </div>
-                {:else if ordersQuery.data}
-                    {@const ordersData = ordersQuery.data}
+                {:else if $ordersQuery.data}
+                    {@const ordersData = $ordersQuery.data}
                     
                     <Table.Root>
                         <Table.Header>
