@@ -5,10 +5,12 @@ namespace App\Console\Commands;
 use App\Jobs\GenerateOrderPdfJob;
 use App\Jobs\GenerateShippingLabel;
 use App\Jobs\ProcessOrderStateChange;
+use App\Models\Address;
 use App\Models\ApiClient;
 use App\Models\Client;
 use App\Models\Order;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 
@@ -38,26 +40,41 @@ class QueueTestDataSeeder extends Command
      */
     public function handle()
     {
+        // Environment safety check
+        if (app()->environment('production')) {
+            $this->error('This command should not be run in production!');
+            return Command::FAILURE;
+        }
+
         if ($this->option('clear')) {
             $this->clearTestData();
         }
 
         $this->info('Seeding test data for queue testing suite...');
 
-        // Create API clients for testing
-        $this->createApiClients();
+        try {
+            DB::transaction(function () {
+                // Create API clients for testing
+                $this->createApiClients();
 
-        // Create test clients
-        $this->createTestClients();
+                // Create test clients
+                $this->createTestClients();
 
-        // Create test orders
-        $this->createTestOrders();
+                // Create test orders
+                $this->createTestOrders();
 
-        // Dispatch test jobs
-        $this->dispatchTestJobs();
+                // Dispatch test jobs
+                $this->dispatchTestJobs();
+            });
 
-        $this->info('Test data seeding completed successfully!');
-        $this->showSummary();
+            $this->info('Test data seeding completed successfully!');
+            $this->showSummary();
+
+            return Command::SUCCESS;
+        } catch (\Exception $e) {
+            $this->error('Test data seeding failed: ' . $e->getMessage());
+            return Command::FAILURE;
+        }
     }
 
     /**
@@ -67,14 +84,18 @@ class QueueTestDataSeeder extends Command
     {
         $this->warn('Clearing existing test data...');
         
-        // Clear queue jobs
-        \DB::table('jobs')->delete();
-        \DB::table('failed_jobs')->delete();
-        
-        // Clear test orders and clients (only those created for testing)
-        Order::where('number', 'LIKE', 'TEST-%')->delete();
-        Client::where('external_id', 'LIKE', 'TEST_CLIENT_%')->delete();
-        ApiClient::where('name', 'LIKE', '%Test API Client%')->delete();
+        DB::transaction(function () {
+            // Clear queue jobs (only if in development)
+            if (app()->environment(['local', 'testing'])) {
+                DB::table('jobs')->delete();
+                DB::table('failed_jobs')->delete();
+            }
+            
+            // Clear test orders and clients (only those created for testing)
+            Order::where('number', 'LIKE', 'TEST-%')->delete();
+            Client::where('external_id', 'LIKE', 'TEST_CLIENT_%')->delete();
+            ApiClient::where('name', 'LIKE', '%Test API Client%')->delete();
+        });
         
         $this->info('Test data cleared.');
     }
@@ -87,21 +108,26 @@ class QueueTestDataSeeder extends Command
         $count = $this->option('api-clients');
         $this->info("Creating {$count} API clients for testing...");
 
-        for ($i = 1; $i <= $count; $i++) {
+        // Get the highest existing test API client number to avoid conflicts
+        $existingCount = ApiClient::where('name', 'LIKE', '%Test API Client%')->count();
+        $startNumber = $existingCount + 1;
+
+        for ($i = 0; $i < $count; $i++) {
+            $clientNumber = $startNumber + $i;
             $keyId = 'test_' . Str::random(16);
-            $secretHash = hash('sha256', Str::random(64));
+            $secret = Str::random(64); // Generate secret
+            $secretHash = hash('sha256', $secret); // Hash for storage
 
             ApiClient::create([
-                'name' => "Test API Client {$i}",
+                'name' => "Test API Client {$clientNumber}",
                 'key_id' => $keyId,
                 'secret_hash' => $secretHash,
                 'active' => true,
-                'ip_allowlist' => ['127.0.0.1', 'localhost'],
-                'created_at' => now(),
-                'updated_at' => now(),
+                'ip_allowlist' => json_encode(['127.0.0.1', 'localhost']), // JSON encode for proper storage
             ]);
 
             $this->line("  ✓ Created API Client: {$keyId}");
+            $this->line("    Secret (save this - not stored): {$secret}");
         }
     }
 
@@ -113,19 +139,29 @@ class QueueTestDataSeeder extends Command
         $count = $this->option('clients');
         $this->info("Creating {$count} test clients...");
 
-        for ($i = 1; $i <= $count; $i++) {
+        // Get the highest existing test client number to avoid conflicts
+        $existingCount = Client::where('external_id', 'LIKE', 'TEST_CLIENT_%')->count();
+        $startNumber = $existingCount + 1;
+
+        for ($i = 0; $i < $count; $i++) {
+            $clientNumber = $startNumber + $i;
+            
             Client::create([
-                'external_id' => "TEST_CLIENT_{$i}",
+                'external_id' => "TEST_CLIENT_{$clientNumber}",
                 'first_name' => "Test",
-                'last_name' => "Client {$i}",
-                'company' => "Test Company {$i}",
-                'email' => "test{$i}@example.com",
-                'phone' => "+420123456{$i}",
-                'vat_id' => "CZ" . str_pad($i, 8, '0', STR_PAD_LEFT),
+                'last_name' => "Client {$clientNumber}",
+                'company' => "Test Company {$clientNumber}",
+                'email' => "test{$clientNumber}@example.com",
+                'phone' => "+420123456" . str_pad($clientNumber, 3, '0', STR_PAD_LEFT),
+                'vat_id' => "CZ" . str_pad($clientNumber, 8, '0', STR_PAD_LEFT),
                 'is_active' => true,
+                'meta' => [
+                    'test_data' => true,
+                    'created_by_seeder' => true,
+                ],
             ]);
 
-            $this->line("  ✓ Created Client: Test Company {$i}");
+            $this->line("  ✓ Created Client: Test Company {$clientNumber}");
         }
     }
 
@@ -138,38 +174,84 @@ class QueueTestDataSeeder extends Command
         $clients = Client::where('external_id', 'LIKE', 'TEST_CLIENT_%')->get();
         
         if ($clients->isEmpty()) {
-            $this->warn('No test clients found. Creating orders without client association.');
+            $this->error('No test clients found. Please create test clients first.');
+            return;
         }
 
         $this->info("Creating {$count} test orders...");
 
-        $statuses = ['new', 'confirmed', 'paid', 'fulfilled', 'completed'];
+        $statuses = [
+            Order::STATUS_NEW,
+            Order::STATUS_CONFIRMED,
+            Order::STATUS_PAID,
+            Order::STATUS_FULFILLED,
+            Order::STATUS_COMPLETED,
+        ];
 
-        for ($i = 1; $i <= $count; $i++) {
-            $client = $clients->random() ?? null;
+        $carriers = [Order::CARRIER_DPD, Order::CARRIER_BALIKOVNA];
+
+        // Get the highest existing test order number to avoid conflicts
+        $existingCount = Order::where('number', 'LIKE', 'TEST-%')->count();
+        $startNumber = $existingCount + 1;
+
+        for ($i = 0; $i < $count; $i++) {
+            $orderNumber = $startNumber + $i;
+            $client = $clients->random();
+            
+            // Create shipping address
+            $shippingAddress = Address::create([
+                'name' => "Test Shipping Address {$orderNumber}",
+                'company' => "Test Delivery Company {$orderNumber}",
+                'street1' => "Test Street {$orderNumber}",
+                'street2' => null,
+                'city' => 'Prague',
+                'state' => null,
+                'postal_code' => '10000',
+                'country_code' => 'CZ',
+                'phone' => "+420987654{$orderNumber}",
+                'email' => "delivery{$orderNumber}@example.com",
+                'type' => 'shipping',
+            ]);
+
+            // Create billing address (same as shipping for simplicity)
+            $billingAddress = Address::create([
+                'name' => $client->first_name . ' ' . $client->last_name,
+                'company' => $client->company,
+                'street1' => "Test Billing Street {$orderNumber}",
+                'street2' => null,
+                'city' => 'Prague',
+                'state' => null,
+                'postal_code' => '10000',
+                'country_code' => 'CZ',
+                'phone' => $client->phone,
+                'email' => $client->email,
+                'type' => 'billing',
+            ]);
+            
+            $carrier = $carriers[array_rand($carriers)];
+            $status = $statuses[array_rand($statuses)];
             
             Order::create([
-                'client_id' => $client?->id,
-                'number' => 'TEST-' . str_pad($i, 6, '0', STR_PAD_LEFT),
-                'status' => $statuses[array_rand($statuses)],
+                'client_id' => $client->id,
+                'number' => 'TEST-' . str_pad($orderNumber, 6, '0', STR_PAD_LEFT),
+                'status' => $status,
                 'total_amount' => rand(100, 5000),
                 'currency' => 'CZK',
+                'shipping_address_id' => $shippingAddress->id,
+                'billing_address_id' => $billingAddress->id,
+                'carrier' => $carrier,
+                'shipping_method' => $carrier === Order::CARRIER_DPD 
+                    ? Order::SHIPPING_METHOD_DPD_HOME 
+                    : Order::SHIPPING_METHOD_BALIKOVNA_PICKUP,
                 'meta' => [
-                    'notes' => "[QUEUE_TEST] Test order for queue testing suite - Order {$i}",
-                    'delivery_company_name' => "Test Delivery Company {$i}",
-                    'delivery_contact_person' => "Delivery Contact {$i}",
-                    'delivery_street' => "Test Street {$i}",
-                    'delivery_city' => 'Prague',
-                    'delivery_postal_code' => '10000',
-                    'delivery_country' => 'CZ',
-                    'delivery_phone' => "+420987654{$i}",
-                    'delivery_email' => "delivery{$i}@example.com",
+                    'notes' => "[QUEUE_TEST] Test order for queue testing suite - Order {$orderNumber}",
+                    'test_data' => true,
                 ],
                 'created_at' => now()->subDays(rand(0, 30)),
                 'updated_at' => now(),
             ]);
 
-            $this->line("  ✓ Created Order: TEST-" . str_pad($i, 6, '0', STR_PAD_LEFT));
+            $this->line("  ✓ Created Order: TEST-" . str_pad($orderNumber, 6, '0', STR_PAD_LEFT));
         }
     }
 
@@ -179,7 +261,7 @@ class QueueTestDataSeeder extends Command
     private function dispatchTestJobs(): void
     {
         $count = $this->option('jobs');
-        $orders = Order::where('number', 'LIKE', 'TEST-%')->get();
+        $orders = Order::where('number', 'LIKE', 'TEST-%')->with(['client', 'shippingAddress'])->get();
 
         if ($orders->isEmpty()) {
             $this->warn('No test orders found. Cannot dispatch queue jobs.');
@@ -192,35 +274,47 @@ class QueueTestDataSeeder extends Command
             $order = $orders->random();
             $jobType = rand(1, 3);
 
-            switch ($jobType) {
-                case 1:
-                    // PDF Generation Job
-                    GenerateOrderPdfJob::dispatch(
-                        $order,
-                        [], // images array
-                        10, // cell size
-                        'https://example.com/overlay.png' // overlay URL
-                    )->onQueue('default');
-                    $this->line("  ✓ Dispatched PDF Generation job for Order {$order->number}");
-                    break;
+            try {
+                switch ($jobType) {
+                    case 1:
+                        // PDF Generation Job - with realistic test data
+                        GenerateOrderPdfJob::dispatch(
+                            $order,
+                            [], // images array - empty for testing
+                            10, // cell size
+                            'https://example.com/test-overlay.png' // test overlay URL
+                        );
+                        $this->line("  ✓ Dispatched PDF Generation job for Order {$order->number}");
+                        break;
 
-                case 2:
-                    // Shipping Label Job
-                    GenerateShippingLabel::dispatch($order, [
-                        'carrier' => 'dpd',
-                        'service_type' => 'standard',
-                    ])->onQueue('default');
-                    $this->line("  ✓ Dispatched Shipping Label job for Order {$order->number}");
-                    break;
+                    case 2:
+                        // Shipping Label Job - only for orders with carrier
+                        if ($order->carrier) {
+                            GenerateShippingLabel::dispatch($order, [
+                                'service_type' => 'standard',
+                                'test_mode' => true,
+                            ]);
+                            $this->line("  ✓ Dispatched Shipping Label job for Order {$order->number}");
+                        } else {
+                            $this->line("  ⚠ Skipped Shipping Label job for Order {$order->number} (no carrier)");
+                        }
+                        break;
 
-                case 3:
-                    // Order State Change Job
-                    ProcessOrderStateChange::dispatch($order, 'confirmed', [
-                        'reason' => 'Test state change for queue testing',
-                        'automated' => true,
-                    ])->onQueue('default');
-                    $this->line("  ✓ Dispatched State Change job for Order {$order->number}");
-                    break;
+                    case 3:
+                        // Order State Change Job - with correct parameters
+                        $newStatus = $order->status === Order::STATUS_NEW ? Order::STATUS_CONFIRMED : Order::STATUS_PAID;
+                        ProcessOrderStateChange::dispatch(
+                            $order,
+                            $order->status, // previous status
+                            $newStatus, // new status
+                            'Test state change for queue testing', // reason
+                            ['automated' => true, 'test_mode' => true] // metadata
+                        );
+                        $this->line("  ✓ Dispatched State Change job for Order {$order->number}");
+                        break;
+                }
+            } catch (\Exception $e) {
+                $this->error("  ✗ Failed to dispatch job for Order {$order->number}: " . $e->getMessage());
             }
 
             // Add some delay to simulate real-world timing
@@ -239,8 +333,8 @@ class QueueTestDataSeeder extends Command
         $apiClientsCount = ApiClient::where('name', 'LIKE', '%Test API Client%')->count();
         $clientsCount = Client::where('external_id', 'LIKE', 'TEST_CLIENT_%')->count();
         $ordersCount = Order::where('number', 'LIKE', 'TEST-%')->count();
-        $pendingJobsCount = \DB::table('jobs')->count();
-        $failedJobsCount = \DB::table('failed_jobs')->count();
+        $pendingJobsCount = DB::table('jobs')->count();
+        $failedJobsCount = DB::table('failed_jobs')->count();
 
         $this->table(['Resource', 'Count'], [
             ['API Clients', $apiClientsCount],

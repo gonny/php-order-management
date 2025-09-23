@@ -5,6 +5,7 @@
   import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
   import { Badge } from '@/components/ui/badge';
   import { AlertTriangle, CheckCircle, Clock, Trash2, RefreshCw } from 'lucide-svelte';
+  import type { BreadcrumbItem } from '@/types';
 
   interface QueueStats {
     pending: number;
@@ -77,9 +78,16 @@
         return 'default';
     }
   }
+        const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Orders', href: '/orders' },
+    ];
 </script>
 
-<AppLayout title="Queue Testing Dashboard">
+  <svelte:head>
+    <title>"API Testing Interface</title>
+</svelte:head>
+<AppLayout {breadcrumbs} >
   <div class="container mx-auto p-6 space-y-6">
     <div class="flex items-center justify-between">
       <div>
