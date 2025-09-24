@@ -44,8 +44,8 @@ class GenerateShippingLabel implements ShouldQueue
 
         try {
             $label = match ($this->order->carrier) {
-                'balikovna' => $this->generateBalikovnaLabel(),
-                'dpd' => $this->generateDpdLabel(),
+                Order::CARRIER_BALIKOVNA => $this->generateBalikovnaLabel(),
+                Order::CARRIER_DPD => $this->generateDpdLabel(),
                 default => throw new \InvalidArgumentException("Unsupported carrier: {$this->order->carrier}")
             };
 
@@ -112,6 +112,7 @@ class GenerateShippingLabel implements ShouldQueue
         //     ->post(config('services.balikovna.api_url') . '/labels', $payload);
 
         // Simulate successful response
+        // TODO: Replace with real API response
         $response = [
             'tracking_number' => 'BAL' . str_pad(random_int(1, 999999999), 9, '0', STR_PAD_LEFT),
             'label_url' => 'https://balikovna.cz/labels/example.pdf',

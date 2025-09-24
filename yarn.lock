@@ -1114,7 +1114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/dom@npm:9.x.x || 10.x.x":
+"@testing-library/dom@npm:9.x.x || 10.x.x, @testing-library/dom@npm:^10.4.1":
   version: 10.4.1
   resolution: "@testing-library/dom@npm:10.4.1"
   dependencies:
@@ -5301,6 +5301,7 @@ __metadata:
     "@tailwindcss/vite": "npm:^4.1.13"
     "@tanstack/svelte-query": "npm:^5.90.2"
     "@tanstack/table-core": "npm:^8.21.3"
+    "@testing-library/dom": "npm:^10.4.1"
     "@testing-library/jest-dom": "npm:^6.8.0"
     "@testing-library/svelte": "npm:^5.2.8"
     "@testing-library/user-event": "npm:^14.6.1"
