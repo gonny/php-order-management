@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\DownloadR2PhotosJob;
 use App\Models\Address;
 use App\Models\Client;
 use App\Models\Order;
@@ -116,6 +117,11 @@ class OrderController extends Controller
             'carrier' => ['sometimes', Rule::in([Order::CARRIER_BALIKOVNA, Order::CARRIER_DPD])],
             'currency' => ['sometimes', 'string', 'size:3'],
             'meta' => ['sometimes', 'array'],
+
+            // R2 integration fields (optional)
+            'r2_photo_links' => ['sometimes', 'array', 'min:1', 'max:9'],
+            'r2_photo_links.*' => ['required_with:r2_photo_links', 'url'],
+            'remote_session_id' => ['required_with:r2_photo_links', 'string', 'max:255'],
         ]);
 
         if ($validator->fails()) {
@@ -175,13 +181,45 @@ class OrderController extends Controller
                 // Log creation
                 $this->auditLogger->logOrderCreation($order, 'api', $this->getApiClientId($request));
 
+                // If R2 photo links are provided, trigger the R2 workflow
+                if ($request->has('r2_photo_links') && $request->has('remote_session_id')) {
+                    DownloadR2PhotosJob::dispatch(
+                        $order,
+                        $request->r2_photo_links,
+                        $request->remote_session_id
+                    );
+
+                    $this->auditLogger->logAuditEvent(
+                        'order',
+                        $order->id,
+                        'r2_workflow_triggered_on_creation',
+                        'api',
+                        $this->getApiClientId($request),
+                        [
+                            'r2_photos_count' => count($request->r2_photo_links),
+                            'remote_session_id' => $request->remote_session_id,
+                        ]
+                    );
+                }
+
                 return $order->load(['client', 'items', 'shippingAddress', 'billingAddress']);
             });
 
-            return response()->json([
+            $responseData = [
                 'data' => $order,
                 'message' => 'Order created successfully',
-            ], 201);
+            ];
+
+            // Add R2 workflow status if applicable
+            if ($request->has('r2_photo_links')) {
+                $responseData['r2_workflow'] = [
+                    'status' => 'processing',
+                    'remote_session_id' => $request->remote_session_id,
+                    'photos_count' => count($request->r2_photo_links),
+                ];
+            }
+
+            return response()->json($responseData, 201);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -638,6 +676,71 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'PDF generation failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate PDF for order using R2 photos.
+     */
+    public function generatePdfFromR2(Request $request, Order $order): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'r2_photo_links' => ['required', 'array', 'min:1', 'max:9'],
+            'r2_photo_links.*' => ['required', 'url'],
+            'remote_session_id' => ['required', 'string', 'max:255'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Validate R2 photo links
+        foreach ($request->r2_photo_links as $r2Link) {
+            if (!filter_var($r2Link, FILTER_VALIDATE_URL)) {
+                return response()->json([
+                    'error' => 'Invalid R2 photo URL',
+                    'message' => "Invalid URL: {$r2Link}",
+                ], 422);
+            }
+        }
+
+        try {
+            // Dispatch R2 photo download job (which will chain PDF generation)
+            DownloadR2PhotosJob::dispatch(
+                $order,
+                $request->r2_photo_links,
+                $request->remote_session_id
+            );
+
+            // Log the R2 PDF generation request
+            $this->auditLogger->logAuditEvent(
+                'order',
+                $order->id,
+                'r2_pdf_generation_requested',
+                'api',
+                $this->getApiClientId($request),
+                [
+                    'r2_photos_count' => count($request->r2_photo_links),
+                    'remote_session_id' => $request->remote_session_id,
+                    'r2_photo_links' => $request->r2_photo_links,
+                ]
+            );
+
+            return response()->json([
+                'message' => 'R2 PDF generation started. Photos will be downloaded and PDF generated.',
+                'order_id' => $order->id,
+                'remote_session_id' => $request->remote_session_id,
+                'status' => 'processing',
+            ], 202);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'R2 PDF generation failed',
                 'message' => $e->getMessage(),
             ], 500);
         }

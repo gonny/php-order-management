@@ -35,6 +35,7 @@ Route::prefix('v1')->middleware([
     Route::delete('orders/{order}/shipment/dpd', [OrderController::class, 'deleteDpdShipment']);
     Route::post('orders/{order}/tracking/refresh', [OrderController::class, 'refreshDpdTracking']);
     Route::post('orders/{order}/pdf', [OrderController::class, 'generatePdf'])->middleware(RateLimitApiMiddleware::class . ':10');
+    Route::post('orders/{order}/pdf/r2', [OrderController::class, 'generatePdfFromR2'])->middleware(RateLimitApiMiddleware::class . ':10');
 
     // Client management endpoints (now with full CRUD)
     Route::apiResource('clients', ClientController::class);

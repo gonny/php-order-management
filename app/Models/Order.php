@@ -29,11 +29,16 @@ class Order extends Model
         'parcel_group_id',
         'meta',
         'pdf_path',
+        'remote_session_id',
+        'r2_photo_links',
+        'local_photo_paths',
     ];
 
     protected $casts = [
         'meta' => 'array',
         'total_amount' => 'decimal:2',
+        'r2_photo_links' => 'array',
+        'local_photo_paths' => 'array',
     ];
 
     // Order status constants
