@@ -194,7 +194,7 @@ class OrderController extends Controller
     /**
      * Display the specified order.
      */
-    public function show(Request $request, string $identifier): JsonResponse
+    public function show(string $identifier): JsonResponse
     {
         // Support lookup by ID, number, or pmi_id
         $order = Order::with(['client', 'items', 'shippingAddress', 'billingAddress', 'shippingLabels'])

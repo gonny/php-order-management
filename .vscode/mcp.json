@@ -23,11 +23,6 @@
         "@modelcontextprotocol/server-sequential-thinking@latest"
       ],
     },
-    "Astro-docs": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
-    },
     "cloudflare-documentation": {
       "type": "stdio",
       "command": "npx",

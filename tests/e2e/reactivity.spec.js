@@ -138,7 +138,7 @@ test.describe('Svelte Form Reactivity Tests', () => {
                 try {
                     await field.fill('test value');
                     await page.waitForTimeout(100); // Small delay to trigger reactivity
-                } catch (e) {
+                } catch {
                     // Ignore errors for fields that might not be fillable
                 }
             }

@@ -44,6 +44,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/queues/failed', [QueueWebController::class, 'failed'])->name('queues.failed');
 });
 
+// Queue Testing Suite Routes
+Route::middleware(['auth', 'verified'])->prefix('testing')->name('testing.')->group(function () {
+    Route::get('/queue-dashboard', [\App\Http\Controllers\Testing\QueueTestingController::class, 'dashboard'])->name('queue.dashboard');
+    Route::get('/api-testing', [\App\Http\Controllers\Testing\QueueTestingController::class, 'apiTesting'])->name('api.testing');
+    Route::post('/api-test/execute', [\App\Http\Controllers\Testing\QueueTestingController::class, 'executeTest'])->name('api.execute');
+    Route::delete('/queue/failed/clear', [\App\Http\Controllers\Testing\QueueTestingController::class, 'clearFailedJobs'])->name('queue.failed.clear');
+    Route::post('/queue/failed/retry-all', [\App\Http\Controllers\Testing\QueueTestingController::class, 'retryAllFailedJobs'])->name('queue.failed.retry-all');
+});
+
 // Audit Logs Web Routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/audit-logs', function () {

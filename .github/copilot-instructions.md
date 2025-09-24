@@ -8,7 +8,7 @@
 - Application frontend is secured by Laravel Sanctum. You have to have allowed domain in `SANCTUM_STATEFUL_DOMAINS`. Eg: `localhost:8080,localhost:5173`.
 - Run database migrations and seeders: `php artisan migrate:fresh --seed`. This will also create test user 'text@example.com' with password 'Passw0rd1!'.
 - Run application backend: `php artisan serve -host=127.0.0.1  --port=8000`
-- Run application frontend: `npm run dev --host`
+- Run application frontend: `yarn dev --host`
 
 # Testing and code style
 ## Testing and codestyle stack
@@ -28,10 +28,10 @@
 - Frontend uses `Playwright` for end-to-end testing.
 - Frontend uses `svelte-check` for Svelte specific code analysis.
 - Frontend uses `eslint` for code style.
-- Run unit tests: `npm run test:run`
-- Run end-to-end tests: `npm run test:e2e`
-- Run Svelte code analysis: `npm svelte-check`
-- Run eslint code style check: `npm run lint`
+- Run unit tests: `yarn run test:run`
+- Run end-to-end tests: `yarn run test:e2e`
+- Run Svelte code analysis: `yarn svelte-check`
+- Run eslint code style check: `yarn run lint`
 
 # Naming conventions
 - Name all functions and methods so it is clear what they do.

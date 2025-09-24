@@ -4,6 +4,8 @@ import type {
   PaginatedResponse,
 } from '../types/api';
 
+import Spa  from '../actions/App/Http/Controllers/Spa';
+
 // Import order types from the orders package
 import type {
   Order,
@@ -195,9 +197,8 @@ export class SpaApiClient {
 
   async getOrder(id: string): Promise<Order> {
     const response = await this.request<ApiResponse<Order>>(
-      'GET',
-      `/spa/v1/orders/${id}`
-    );
+      Spa.OrderController.show(id).method, 
+      Spa.OrderController.show(id).url);
     return response.data;
   }
 
