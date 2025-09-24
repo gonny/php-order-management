@@ -4,7 +4,7 @@
     import { DpdLabelManager } from '@/packages/dpd-courier';
     import AppLayout from '@/layouts/AppLayout.svelte';
     import type { BreadcrumbItem } from '@/types';
-    import type { OrderTransition } from '@/packages/orders';
+    import type { Order, OrderTransition } from '@/packages/orders';
     import * as Card from '@/components/ui/card';
     import * as Tabs from '@/components/ui/tabs';
     import * as Table from '@/components/ui/table';
@@ -14,14 +14,14 @@
     import { Separator } from '@/components/ui/separator';
     import { 
         ArrowLeft, 
-        Edit, 
         RefreshCw, 
         FileText, 
         Package,
         User,
         History,
-        AlertTriangle
     } from 'lucide-svelte';
+    import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
+    import SquarePen from 'lucide-svelte/icons/square-pen';
     import { router } from '@inertiajs/svelte';
     import {
         getStatusColor,
@@ -33,8 +33,9 @@
         requiresConfirmation,
     } from '@/packages/orders';
 
-    // Props from Inertia
-    let { orderId } = $props<{ orderId: string }>();
+    // Props from Inertia (Svelte 5 runes syntax)
+    let { order } = $props<{ order: Order }>();
+    const orderId = order.id;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -42,9 +43,12 @@
         { title: `Order #${orderId}`, href: `/orders/${orderId}` },
     ];
 
-    // Get order data
-    const orderQuery = useOrder(orderId);
+    console.log("Order ID:", order);
+    // Get order data (TanStack Query with Svelte 5)
+    const orderQuery = $derived(useOrder(order.id));
     
+    $effect(() => console.log($orderQuery.data))
+
     // Mutations
     const transitionMutation = useTransitionOrder();
 
@@ -69,7 +73,7 @@
     }
 
     function handleTransition(transition: OrderTransition) {
-        $transitionMutation.mutate({ id: orderId, transition });
+        $transitionMutation.mutate({ id: order, transition });
     }
 
     // Pickup point selection for DPD (should be set via UI in real implementation)
@@ -79,7 +83,7 @@
 </script>
 
 <svelte:head>
-    <title>Order #{orderId} - Order Management</title>
+    <title>Order #{order} - Order Management</title>
 </svelte:head>
 
 <AppLayout {breadcrumbs}>
@@ -110,7 +114,7 @@
             <Card.Root class="border-red-200 dark:border-red-800">
                 <Card.Header>
                     <Card.Title class="text-red-800 dark:text-red-200 flex items-center">
-                        <AlertTriangle class="mr-2 h-5 w-5" />
+                        <TriangleAlert class="mr-2 h-5 w-5" />
                         Failed to load order
                     </Card.Title>
                 </Card.Header>
@@ -150,7 +154,7 @@
                         Back
                     </Button>
                     <div>
-                        <h2 class="text-3xl font-bold tracking-tight">Order #{order.order_number || order.number || orderId}</h2>
+                        <h2 class="text-3xl font-bold tracking-tight">Order #{order.number || order}</h2>
                         <p class="text-muted-foreground">
                             Created {formatDateTime(order.created_at)}
                         </p>
@@ -174,7 +178,7 @@
                         size="sm"
                         onclick={() => router.visit(`/orders/${order.id}/edit`)}
                     >
-                        <Edit class="mr-2 h-4 w-4" />
+                        <SquarePen class="mr-2 h-4 w-4" />
                         Edit
                     </Button>
                 </div>
@@ -273,11 +277,11 @@
                                     {/if}
                                 </div>
                                 
-                                {#if order.notes}
+                                {#if order.meta?.notes}
                                     <Separator />
                                     <div>
                                         <p class="text-sm font-medium text-muted-foreground">Notes</p>
-                                        <p class="text-sm">{order.notes}</p>
+                                        <p class="text-sm">{order.meta?.notes}</p>
                                     </div>
                                 {/if}
                             </Card.Content>
@@ -291,16 +295,16 @@
                             <Card.Content class="space-y-4">
                                 <div class="flex justify-between">
                                     <span class="text-sm">Subtotal</span>
-                                    <span class="text-sm">{formatCurrency(order.subtotal, order.currency)}</span>
+                                    <span class="text-sm">{formatCurrency(order.subtotal || order.total_amount, order.currency)}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-sm">Tax</span>
-                                    <span class="text-sm">{formatCurrency(order.tax_total, order.currency)}</span>
+                                    <span class="text-sm">{formatCurrency(order.tax_total || 0, order.currency)}</span>
                                 </div>
                                 <Separator />
                                 <div class="flex justify-between font-semibold">
                                     <span>Total</span>
-                                    <span>{formatCurrency(order.total, order.currency)}</span>
+                                    <span>{formatCurrency(order.total || order.total_amount, order.currency)}</span>
                                 </div>
                             </Card.Content>
                         </Card.Root>

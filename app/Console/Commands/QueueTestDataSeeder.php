@@ -9,9 +9,11 @@ use App\Models\Address;
 use App\Models\ApiClient;
 use App\Models\Client;
 use App\Models\Order;
+use Database\Factories\OrderItemFactory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class QueueTestDataSeeder extends Command
@@ -230,6 +232,7 @@ class QueueTestDataSeeder extends Command
             
             $carrier = $carriers[array_rand($carriers)];
             $status = $statuses[array_rand($statuses)];
+            $item = OrderItemFactory::new()->count(rand(1, 5));
             
             Order::create([
                 'client_id' => $client->id,
@@ -241,12 +244,13 @@ class QueueTestDataSeeder extends Command
                 'billing_address_id' => $billingAddress->id,
                 'carrier' => $carrier,
                 'shipping_method' => $carrier === Order::CARRIER_DPD 
-                    ? Order::SHIPPING_METHOD_DPD_HOME 
+                    ? [Order::SHIPPING_METHOD_DPD_HOME, Order::SHIPPING_METHOD_DPD_PICKUP][array_rand([Order::SHIPPING_METHOD_DPD_HOME, Order::SHIPPING_METHOD_DPD_PICKUP])]
                     : Order::SHIPPING_METHOD_BALIKOVNA_PICKUP,
                 'meta' => [
                     'notes' => "[QUEUE_TEST] Test order for queue testing suite - Order {$orderNumber}",
                     'test_data' => true,
                 ],
+                'items' => $item->make(),
                 'created_at' => now()->subDays(rand(0, 30)),
                 'updated_at' => now(),
             ]);
@@ -282,7 +286,7 @@ class QueueTestDataSeeder extends Command
                             $order,
                             [], // images array - empty for testing
                             10, // cell size
-                            'https://example.com/test-overlay.png' // test overlay URL
+                            Storage::disk("local")->path("overlay_image/magnetky_sablona.png") // test overlay URL
                         );
                         $this->line("  ✓ Dispatched PDF Generation job for Order {$order->number}");
                         break;

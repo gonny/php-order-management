@@ -1,3 +1,4 @@
+import type { BillingAddress, Client, ShippingAddress } from '../../clients/types/client';
 // Order-specific types extracted from shared types
 export type OrderStatus = 
   | 'new' 
@@ -67,11 +68,11 @@ export interface Order extends BaseEntity {
   pmi_id?: string;
   status: OrderStatus;
   client_id: string;
-  client?: any; // Will be properly typed when client package is created
+  client?: Client; // Will be properly typed when client package is created
   shipping_address_id: string;
   billing_address_id?: string;
-  shipping_address?: any; // Will be properly typed when shared address types are created
-  billing_address?: any;
+  shipping_address?: ShippingAddress; // Will be properly typed when shared address types are created
+  billing_address?: BillingAddress;
   carrier: Carrier;
   currency: Currency;
   subtotal: number;
@@ -84,8 +85,10 @@ export interface Order extends BaseEntity {
   tracking_number?: string;       // Used in multiple places
   parcel_group_id?: string;       // Used in: orders/Show.svelte:624
   pdf_label_path?: string;        // Used in: orders/Show.svelte:660
-  notes?: string;
-  meta?: Record<string, any>;
+  meta?: {
+    notes?: string,
+    [key:string]: any
+  };
   items?: OrderItem[];
   shipping_labels?: any[];        // Will be properly typed when shipping package is created
   audit_logs?: any[];             // Will be properly typed when shared types are created

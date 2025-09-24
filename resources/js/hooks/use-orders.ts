@@ -26,6 +26,11 @@ export function useOrders(filters: OrderFilters = {}) {
   });
 }
 
+/**
+ * @deprecated
+ * @param id &
+ * @returns 
+ */
 export function useOrder(id: string) {
   return createQuery({
     queryKey: orderKeys.detail(id),

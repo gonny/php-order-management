@@ -21,6 +21,7 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.24.1",
+        "fumeapp/modeltyper": "^3.4",
         "laravel/pail": "^1.2.3",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.44.0",
