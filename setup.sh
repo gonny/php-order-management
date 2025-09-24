@@ -49,6 +49,7 @@ sudo make install
 echo "extension=pcntl.so" | sudo tee  "$PHP_INI_DIR/conf.d/20-pcntl.ini"
 
 composer install && yarn install --latest
+php artisan wayfinder:generate
 
 # # MySQL
 # docker pull $MYSQL_DOCKER_IMAGE

@@ -3,7 +3,7 @@ import pdf from './pdf'
 import dpd from './dpd'
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::index
-* @see app/Http/Controllers/Api/V1/OrderController.php:30
+* @see app/Http/Controllers/Api/V1/OrderController.php:31
 * @route '/api/v1/orders'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -18,7 +18,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::index
-* @see app/Http/Controllers/Api/V1/OrderController.php:30
+* @see app/Http/Controllers/Api/V1/OrderController.php:31
 * @route '/api/v1/orders'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -27,7 +27,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::index
-* @see app/Http/Controllers/Api/V1/OrderController.php:30
+* @see app/Http/Controllers/Api/V1/OrderController.php:31
 * @route '/api/v1/orders'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -37,7 +37,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::index
-* @see app/Http/Controllers/Api/V1/OrderController.php:30
+* @see app/Http/Controllers/Api/V1/OrderController.php:31
 * @route '/api/v1/orders'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -91,7 +91,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::store
-* @see app/Http/Controllers/Api/V1/OrderController.php:82
+* @see app/Http/Controllers/Api/V1/OrderController.php:83
 * @route '/api/v1/orders'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -106,7 +106,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::store
-* @see app/Http/Controllers/Api/V1/OrderController.php:82
+* @see app/Http/Controllers/Api/V1/OrderController.php:83
 * @route '/api/v1/orders'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -115,7 +115,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::store
-* @see app/Http/Controllers/Api/V1/OrderController.php:82
+* @see app/Http/Controllers/Api/V1/OrderController.php:83
 * @route '/api/v1/orders'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -125,7 +125,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::show
-* @see app/Http/Controllers/Api/V1/OrderController.php:197
+* @see app/Http/Controllers/Api/V1/OrderController.php:235
 * @route '/api/v1/orders/{order}'
 */
 export const show = (args: { order: string | number } | [order: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -140,7 +140,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::show
-* @see app/Http/Controllers/Api/V1/OrderController.php:197
+* @see app/Http/Controllers/Api/V1/OrderController.php:235
 * @route '/api/v1/orders/{order}'
 */
 show.url = (args: { order: string | number } | [order: string | number ] | string | number, options?: RouteQueryOptions) => {
@@ -167,7 +167,7 @@ show.url = (args: { order: string | number } | [order: string | number ] | strin
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::show
-* @see app/Http/Controllers/Api/V1/OrderController.php:197
+* @see app/Http/Controllers/Api/V1/OrderController.php:235
 * @route '/api/v1/orders/{order}'
 */
 show.get = (args: { order: string | number } | [order: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -177,7 +177,7 @@ show.get = (args: { order: string | number } | [order: string | number ] | strin
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::show
-* @see app/Http/Controllers/Api/V1/OrderController.php:197
+* @see app/Http/Controllers/Api/V1/OrderController.php:235
 * @route '/api/v1/orders/{order}'
 */
 show.head = (args: { order: string | number } | [order: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -255,7 +255,7 @@ show.head = (args: { order: string | { id: string } } | [order: string | { id: s
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::update
-* @see app/Http/Controllers/Api/V1/OrderController.php:224
+* @see app/Http/Controllers/Api/V1/OrderController.php:262
 * @route '/api/v1/orders/{order}'
 */
 export const update = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -270,7 +270,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::update
-* @see app/Http/Controllers/Api/V1/OrderController.php:224
+* @see app/Http/Controllers/Api/V1/OrderController.php:262
 * @route '/api/v1/orders/{order}'
 */
 update.url = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
@@ -303,7 +303,7 @@ update.url = (args: { order: string | { id: string } } | [order: string | { id: 
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::update
-* @see app/Http/Controllers/Api/V1/OrderController.php:224
+* @see app/Http/Controllers/Api/V1/OrderController.php:262
 * @route '/api/v1/orders/{order}'
 */
 update.put = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -313,7 +313,7 @@ update.put = (args: { order: string | { id: string } } | [order: string | { id: 
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::update
-* @see app/Http/Controllers/Api/V1/OrderController.php:224
+* @see app/Http/Controllers/Api/V1/OrderController.php:262
 * @route '/api/v1/orders/{order}'
 */
 update.patch = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -323,7 +323,7 @@ update.patch = (args: { order: string | { id: string } } | [order: string | { id
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::destroy
-* @see app/Http/Controllers/Api/V1/OrderController.php:253
+* @see app/Http/Controllers/Api/V1/OrderController.php:291
 * @route '/api/v1/orders/{order}'
 */
 export const destroy = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -338,7 +338,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::destroy
-* @see app/Http/Controllers/Api/V1/OrderController.php:253
+* @see app/Http/Controllers/Api/V1/OrderController.php:291
 * @route '/api/v1/orders/{order}'
 */
 destroy.url = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions) => {
@@ -371,7 +371,7 @@ destroy.url = (args: { order: string | { id: string } } | [order: string | { id:
 
 /**
 * @see \App\Http\Controllers\Api\V1\OrderController::destroy
-* @see app/Http/Controllers/Api/V1/OrderController.php:253
+* @see app/Http/Controllers/Api/V1/OrderController.php:291
 * @route '/api/v1/orders/{order}'
 */
 destroy.delete = (args: { order: string | { id: string } } | [order: string | { id: string } ] | string | { id: string }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

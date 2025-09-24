@@ -3,6 +3,7 @@ import PdfController from './PdfController'
 import OrderWebController from './OrderWebController'
 import ClientWebController from './ClientWebController'
 import QueueWebController from './QueueWebController'
+import Testing from './Testing'
 import Settings from './Settings'
 import Auth from './Auth'
 import Spa from './Spa'
@@ -13,6 +14,7 @@ const Controllers = {
     OrderWebController,
     ClientWebController,
     QueueWebController,
+    Testing,
     Settings,
     Auth,
     Spa,
