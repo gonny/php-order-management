@@ -30,6 +30,7 @@
         "@tanstack/table-core": "^8.21.3",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/svelte": "^5.2.8",
+        "@testing-library/dom": "^10.4.1",
         "@testing-library/user-event": "^14.6.1",
         "@tsconfig/svelte": "^5.0.5",
         "@types/node": "^24.3.1",
@@ -43,7 +44,6 @@
         "eslint": "^9.35.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-svelte": "^3.12.1",
-        "formsnap": "^2.0.1",
         "globals": "^16.3.0",
         "happy-dom": "^18.0.1",
         "jsdom": "^26.1.0",
@@ -51,7 +51,6 @@
         "layerchart": "^1.0.11",
         "lucide-svelte": "^0.542.0",
         "maildev": "^2.2.1",
-        "mode-watcher": "^1.1.0",
         "paneforge": "^1.0.2",
         "prettier": "^3.6.2",
         "prettier-plugin-organize-imports": "^4.2.0",
@@ -61,12 +60,9 @@
         "svelte-portal": "^2.2.1",
         "svelte-sonner": "^1.0.5",
         "svelte-transition": "^0.0.17",
-        "sveltekit-superforms": "^2.27.1",
         "tailwind-merge": "^3.3.1",
         "tailwind-variants": "^3.1.0",
         "tailwindcss": "^4.1.13",
-        "tailwindcss-animate": "^1.0.7",
-        "tw-animate-css": "^1.3.8",
         "typescript": "^5.9.2",
         "typescript-eslint": "^8.42.0",
         "vaul-svelte": "^1.0.0-next.7",
@@ -80,6 +76,7 @@
         "lightningcss-linux-x64-gnu": "^1.30.1"
     },
     "dependencies": {
-        "@tanstack/svelte-query": "^5.87.1"
-    }
+        "@tanstack/svelte-query": "^5.90.2"
+    },
+    "packageManager": "yarn@4.10.3"
 }
