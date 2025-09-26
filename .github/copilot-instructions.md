@@ -1,8 +1,14 @@
-# Application
-- Laravel 12 + Inertia 2 + Svelte 5 with runes and correct reactivity patterns + TailwindCSS 4
-- NodeJS 22 with Yarn 1
+# Application Stack
+- This application is built with the following stack:
+- Laravel 12 + Inertia 2 + Svelte 5 with runes (no SvelteKit) and correct reactivity patterns + TailwindCSS 4
+- NodeJS 22 with Yarn 4
 - PHP >=8.3
 - MySQL >=5.6
+- Wayfinder for mapping routes to frontend
+- fumeapp/modeltyper for generating Typescript types from Laravel models
+- Laravel Data for DTOs and validation
+- Laravel Sanctum for authentication
+- Swagger UI for API documentation
 
 ## How to run in dev mode
 - Application frontend is secured by Laravel Sanctum. You have to have allowed domain in `SANCTUM_STATEFUL_DOMAINS`. Eg: `localhost:8080,localhost:5173`.
