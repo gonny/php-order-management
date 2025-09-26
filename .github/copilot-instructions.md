@@ -8,6 +8,7 @@
 - fumeapp/modeltyper for generating Typescript types from Laravel models
 - Laravel Data for DTOs and validation
 - Laravel Sanctum for authentication
+- Laravel Queues with database driver for microservices architecture
 - Swagger UI for API documentation
 
 ## How to run in dev mode
